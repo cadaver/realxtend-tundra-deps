@@ -1,0 +1,1 @@
+These .dlls were generated using QtScriptGenerator. They need to be copied to naali viewer.exe\.\qtplugins\script. The Javascript script instances load these up when instantiating QScriptEngines.
