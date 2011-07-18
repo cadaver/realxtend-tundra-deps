@@ -1,0 +1,7 @@
+-DKNET_LOGGING_SUPPORT_ENABLED
+-DKNET_USE_BOOST
+-DKNET_USE_QT
+-DWIN32
+-o
+E:/Projects/kNet/include/kNet/qt/moc_NetworkServerDialog.cxx
+E:/Projects/kNet/include/kNet/qt/NetworkServerDialog.h

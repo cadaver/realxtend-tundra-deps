@@ -1,0 +1,12 @@
+-IE:/Projects/kNet_Qt47/tinyxml
+-DKNET_ENABLE_WINXP_SUPPORT
+-DKNET_THREAD_CHECKING_ENABLED
+-DKNET_LOGGING_SUPPORT_ENABLED
+-DKNET_NETWORK_PROFILING
+-DKNET_USE_BOOST
+-DKNET_USE_TINYXML
+-DKNET_USE_QT
+-DWIN32
+-o
+E:/Projects/kNet_Qt47/include/kNet/qt/moc_GraphDialog.cxx
+E:/Projects/kNet_Qt47/include/kNet/qt/GraphDialog.h
