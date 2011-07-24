@@ -1,1 +1,2 @@
-See for the branches for sources or prebuilt dependencies for your platform
+Branch for sources of Tundra projects dependencies. This should be mainly used for dependencies on which 
+sources have been modified for the Tundra project. Otherwise the sources should be obtained from the dependency projects website.
