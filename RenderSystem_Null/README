@@ -1,0 +1,12 @@
+
+This is the Null render system for Ogre from https://bitbucket.org/rride_a/ogre-null-rendersystem/ all credits to the original author :) 
+If you use it from there be sure to check out the correct branch where his changes are as one branch is the original code that wont build agains 1.7.x Ogre.
+
+How to include in your ogre build:
+
+* When you are buildin Ogre SDK copy this folder into /RenderSystems
+* add_subdirectory(RenderSystem_Null) to the bottom of /RenderSystems/CMakeLists.txt
+* build ogre as normal
+
+-- Note: You can propably make this build without building ogre at the same time, 
+   but you'll have to do some modification to the CMakeLists.txt of this project!
