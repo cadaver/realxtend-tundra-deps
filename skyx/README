@@ -1,0 +1,6 @@
+
+This is a Ogre SkyX plugin for the realXtend Tundra project.
+
+* Original sources with opengl/glsl support: https://launchpad.net/~sonsilentsea-team/+archive/sonsilentsea/+files/libskyx_0.1.1.orig.tar.gz
+* Modified further to have setCamera for setting the current ogre camera for SykX
+* Modified to have all image resources as .dds
