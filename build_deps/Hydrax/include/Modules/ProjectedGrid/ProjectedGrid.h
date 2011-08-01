@@ -256,7 +256,7 @@ namespace Hydrax{ namespace Module
 
 		/// Cameras
 	    Ogre::Camera *mProjectingCamera,	// The camera that does the actual projection
-		             /**mRenderingCamera,*/		// The camera whose frustum the projection is created for
+		             *mRenderingCamera,		// The camera whose frustum the projection is created for
 					 *mTmpRndrngCamera;     // Used to allow cameras with any inherited from a node or nodes 
 
 		/// Normal and position

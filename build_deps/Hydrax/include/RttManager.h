@@ -69,7 +69,7 @@ namespace Hydrax
 			NOC_3 = 3,
 			NOC_4 = 4
 		};
-		
+
 		/** Rtt options struct
 		 */
 		struct RttOptions
@@ -295,8 +295,6 @@ namespace Hydrax
 		 */
 		void removeAllRttListeners(const bool& releaseMemory = true);
 
-        /// Sets the given camera to all render targets.
-        void setViewportCamera(Ogre::Camera* c);
 	private:
 		/** RttManager::CRefractionListener class
 		 */
@@ -456,8 +454,8 @@ namespace Hydrax
 			@param MaterialScheme Ogre::String("") for none
 			@param ShadowsEnabled Enable shadows in this RTT
 		 */
-		void _initializeRtt(const RttType& Rtt,                        const Ogre::Vector3& PlaneNormal, 
-			                const Ogre::ColourValue& BackgroundColour, const bool& RenderSky, 
+		void _initializeRtt(const RttType& Rtt,                        const Ogre::Vector3& PlaneNormal,
+			                const Ogre::ColourValue& BackgroundColour, const bool& RenderSky,
 							Ogre::RenderTargetListener* RTListener,    const Ogre::String& MaterialScheme = "",
 							const bool& ShadowsEnabled = true);
 
@@ -479,7 +477,7 @@ namespace Hydrax
 			return false;
 		}
 
-		/** Invoke Rtt Listeners 
+		/** Invoke Rtt Listeners
 		    @param Rtt Rtt type
 			@param pre true for Pre render target update, false for Post render target update
 		*/
