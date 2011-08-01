@@ -1,0 +1,6 @@
+libhydrax (0.5.4-Ubuntu2) lucid; urgency=low
+
+  * Fixed Win32 texture use incompatibility.
+  * Cleaned dependencies into Hydrax Code::Blocks project
+
+ -- Sanguinario_Joe <jlcercos@gmail.com>  Sun, 27 Mar 2011 11:46:00 +0200
