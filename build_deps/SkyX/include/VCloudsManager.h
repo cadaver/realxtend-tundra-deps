@@ -163,6 +163,10 @@ namespace SkyX
 			return mCreated;
 		}
 
+        /// Update the camera for VCoulds obj.
+        /// @param camera New Ogre::Camera to use.
+        void setCamera(Ogre::Camera *camera);
+
 	private:
 		/** Set light parameters
 		 */

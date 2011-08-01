@@ -295,6 +295,10 @@ namespace Hydrax
 			return mCamera;
 		}
 
+        /// Sets the camera used by HydraX.
+        /// Do not pass in a null pointer!
+        void setCamera(Ogre::Camera* c);
+
 		/** Get main window viewport
 		    @return Ogre::Viewport pointer
 		 */

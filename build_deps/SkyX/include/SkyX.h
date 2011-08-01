@@ -213,6 +213,10 @@ namespace SkyX
             return mCamera;
 		}
 
+        /** Set camera
+		 */
+		void setCamera(Ogre::Camera *camera);
+
 	private:
 		/// Is SkyX created?
 		bool mCreated;
