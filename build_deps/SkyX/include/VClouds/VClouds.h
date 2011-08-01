@@ -290,6 +290,10 @@ namespace SkyX { namespace VClouds{
             return mCamera;
 		}
 
+        /// Set current camera.
+        /// @param camera New Ogre::Camera to use.
+        void setCamera(Ogre::Camera *camera);
+
 		/** Get data manager
 		    @return Data manager
 		 */

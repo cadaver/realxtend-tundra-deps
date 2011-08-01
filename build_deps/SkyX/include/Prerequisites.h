@@ -30,15 +30,11 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 /// Define the dll export qualifier if compiling for Windows
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-   #ifdef NON_STATIC
-      #ifdef SKYX_LIB
-        #define DllExport __declspec (dllexport)
-      #else
-        #define DllExport __declspec (dllimport)
-      #endif
-   #else
-      #define DllExport
-   #endif
+  #ifdef SKYX_LIB
+    #define DllExport __declspec (dllexport)
+  #else
+    #define DllExport __declspec (dllimport)
+  #endif
 #else
    #define DllExport
 #endif
@@ -49,7 +45,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 /// SkyX defines
 #define SKYX_VERSION_MAJOR 0
 #define SKYX_VERSION_MINOR 1
-#define SKYX_VERSION_PATCH 0
+#define SKYX_VERSION_PATCH 1
 
 #define SKYX_RESOURCE_GROUP "SkyX"
 

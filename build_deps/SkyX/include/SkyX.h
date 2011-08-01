@@ -213,9 +213,9 @@ namespace SkyX
             return mCamera;
 		}
 
-        /// Sets the camera used by SkyX.
-        /// Do not pass in a null pointer!
-        void setCamera(Ogre::Camera* c);
+        /** Set camera
+		 */
+		void setCamera(Ogre::Camera *camera);
 
 	private:
 		/// Is SkyX created?
