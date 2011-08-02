@@ -108,7 +108,7 @@ public:
 //! receives all signals for one QObject
 /*! we derive from our base but do not declare the QObject macro because we want to reimplement qt_metacall only.
 */
-class PythonQtSignalReceiver : public PythonQtSignalReceiverBase {
+class PYTHONQT_EXPORT PythonQtSignalReceiver : public PythonQtSignalReceiverBase {
 
 public:
   PythonQtSignalReceiver(QObject* obj);
@@ -122,6 +122,14 @@ public:
 
   //! remove all signal handlers
   void removeSignalHandlers();
+
+  //! disconnect and remove all signal handlers.
+  //! \note Added by realXtend Tundra project
+  void disconnectAndRemoveSignalHandlers();
+
+  //! returns all signal targets.
+  //! \note Added by realXtend Tundra project
+  QList<PythonQtSignalTarget> getSignalTargets() { return _targets; }
 
   //! we implement this method to simulate a number of slots that match the ids in _targets
   virtual int qt_metacall(QMetaObject::Call c, int id, void **arguments);

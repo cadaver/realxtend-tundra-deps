@@ -42,7 +42,7 @@
  */
 //----------------------------------------------------------------------------------
 
-#include "PythonQtImportFileInterface.h"
+#include <PythonQtImportFileInterface.h>
 
 //! default importer implementation using QFile to load python code
 class PythonQtQFileImporter : public PythonQtImportFileInterface {

@@ -575,6 +575,20 @@ public:
   //! get access to the PythonQt module
   PythonQtObjectPtr pythonQtModule() const { return _pythonQtModule; }
 
+  //! get all signal receivers. 
+  //! \note Added by realXtend Tundra project
+  QHash<QObject* , PythonQtSignalReceiver *> getSignalReceivers() { return _signalReceivers; }
+
+  //! disconnect all signal receivers known to PythonQt.
+  //! \note Added by realXtend Tundra project.
+  void disconnectAllSignalReceivers();
+
+  //! removes all signal receivers known to PythonQt. 
+  //! releases all tracking PythonQtSignalReceivers memory.
+  //! \note Be sure to call disconnectAllSignalReceivers() to disconnect everything first.
+  //! \note Added by realXtend Tundra project.
+  void deleteAllSignalReceivers();
+
 private:
   //! Setup the shared library suffixes by getting them from the "imp" module.
   void setupSharedLibrarySuffixes();
