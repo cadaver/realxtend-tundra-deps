@@ -137,6 +137,15 @@ namespace Hydrax
 			return mCfgFileManager->load(File);
 		}
 
+    	/** Load config from a string
+		    @param str The config string
+			@return false if an error has been ocurred(Check the log file in this case).
+		 */
+        inline const bool loadCfgString(const Ogre::String &str) const
+        {
+            return mCfgFileManager->loadString(str);
+        }
+
         /** Set clip planes error
             @param PlanesError Clip planes error
          */
