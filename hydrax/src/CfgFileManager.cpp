@@ -83,6 +83,49 @@ namespace Hydrax
 		return true;
 	}
 
+    const bool CfgFileManager::loadString(const Ogre::String& str) const
+    {
+        Ogre::DataStreamPtr stream(new Ogre::MemoryDataStream((void*)str.data(), str.size(), false));
+        if (stream.isNull())
+            return false;
+
+        Ogre::ConfigFile CfgFile;
+        CfgFile.load(stream);
+
+        if (!_checkVersion(CfgFile))
+        {
+            return false;
+        }
+
+        // Load main options
+        mHydrax->setPosition(_getVector3Value(CfgFile,"Position"));
+        mHydrax->setPlanesError(_getFloatValue(CfgFile,"PlanesError"));
+        mHydrax->setShaderMode(static_cast<MaterialManager::ShaderMode>(_getIntValue(CfgFile, "ShaderMode")));
+        mHydrax->setFullReflectionDistance(_getFloatValue(CfgFile,"FullReflectionDistance"));
+        mHydrax->setGlobalTransparency(_getFloatValue(CfgFile,"GlobalTransparency"));
+        mHydrax->setNormalDistortion(_getFloatValue(CfgFile,"NormalDistortion"));
+        mHydrax->setWaterColor(_getVector3Value(CfgFile,"WaterColor"));
+
+        // Load components settings
+        _loadComponentsSettings(CfgFile);
+
+        // Load rtt settings
+        _loadRttSettings(CfgFile);
+
+        // Load module and noise settings
+        if (mHydrax->getModule())
+        {
+            mHydrax->getModule()->loadCfg(CfgFile);
+
+            if (mHydrax->getModule()->getNoise())
+            {
+                mHydrax->getModule()->getNoise()->loadCfg(CfgFile);
+            }
+        }
+
+        return true;
+    }
+
 	const bool CfgFileManager::save(const Ogre::String& File, const Ogre::String& Path) const
 	{
 		Ogre::String Data =
@@ -431,9 +474,13 @@ namespace Hydrax
 				// Patch
 				Ogre::StringConverter::toString(HYDRAX_VERSION_PATCH)))
 		{
-			HydraxLOG("Config file version doesn't correspond with Hydrax version.");
-
-			return false;
+            if (CfgFile.getSetting("HydraxVersion") == "0.5.1")
+                return true;
+            else
+            {
+                HydraxLOG("Config file version doesn't correspond with Hydrax version.");
+			    return false;
+            }
 		}
 
 		return true;
