@@ -17,10 +17,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -50,8 +46,10 @@
  * @param K Number of pulses to use
  * @param p Pitch vector (it is assumed that p+x is a unit vector)
  * @param enc Entropy encoder state
+ * @ret A mask indicating which blocks in the band received pulses
 */
-void alg_quant(celt_norm *X, int N, int K, int spread, ec_enc *enc);
+unsigned alg_quant(celt_norm *X, int N, int K, int spread, int B,
+      int resynth, ec_enc *enc, celt_word16 gain);
 
 /** Algebraic pulse decoder
  * @param x Decoded normalised spectrum (returned)
@@ -59,22 +57,13 @@ void alg_quant(celt_norm *X, int N, int K, int spread, ec_enc *enc);
  * @param K Number of pulses to use
  * @param p Pitch vector (automatically added to x)
  * @param dec Entropy decoder state
+ * @ret A mask indicating which blocks in the band received pulses
  */
-void alg_unquant(celt_norm *X, int N, int K, int spread, ec_dec *dec);
+unsigned alg_unquant(celt_norm *X, int N, int K, int spread, int B,
+      ec_dec *dec, celt_word16 gain);
 
-celt_word16 renormalise_vector(celt_norm *X, celt_word16 value, int N, int stride);
+void renormalise_vector(celt_norm *X, int N, celt_word16 gain);
 
-/** Intra-frame predictor that matches a section of the current frame (at lower
- * frequencies) to encode the current band.
- * @param x Residual signal to quantise/encode (returns quantised version)
- * @param W Perceptual weight
- * @param N Number of samples to encode
- * @param K Number of pulses to use
- * @param Y Lower frequency spectrum to use, normalised to the same standard deviation
- * @param P Pitch vector (it is assumed that p+x is a unit vector)
- * @param B Stride (number of channels multiplied by the number of MDCTs per frame)
- * @param N0 Number of valid offsets
- */
-void intra_fold(const CELTMode *m, int N, const celt_norm * restrict Y, celt_norm * restrict P, int N0, int B);
+int stereo_itheta(celt_norm *X, celt_norm *Y, int stereo, int N);
 
 #endif /* VQ_H */

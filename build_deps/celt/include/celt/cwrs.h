@@ -14,10 +14,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -41,12 +37,9 @@
 
 int log2_frac(ec_uint32 val, int frac);
 
-/* Whether the CWRS codebook will fit into 32 bits */
-int fits_in32(int _n, int _m);
-
 void get_required_bits(celt_int16 *bits, int N, int K, int frac);
 
-void encode_pulses(int *_y, int N, int K, ec_enc *enc);
+void encode_pulses(const int *_y, int N, int K, ec_enc *enc);
 
 void decode_pulses(int *_y, int N, int K, ec_dec *dec);
 

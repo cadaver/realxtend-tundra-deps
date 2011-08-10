@@ -18,10 +18,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -41,8 +37,13 @@
 
 #include "modes.h"
 
-void pitch_downsample(const celt_sig * restrict x, celt_word16 * restrict x_lp, int len, int end, int _C, celt_sig * restrict xmem, celt_word16 * restrict filt_mem);
+void pitch_downsample(celt_sig * restrict x[], celt_word16 * restrict x_lp,
+      int len, int _C);
 
-void pitch_search(const CELTMode *m, const celt_word16 * restrict x_lp, celt_word16 * restrict y, int len, int max_pitch, int *pitch, celt_sig *xmem);
+void pitch_search(const celt_word16 * restrict x_lp, celt_word16 * restrict y,
+                  int len, int max_pitch, int *pitch);
+
+celt_word16 remove_doubling(celt_word16 *x, int maxperiod, int minperiod,
+      int N, int *T0, int prev_period, celt_word16 prev_gain);
 
 #endif

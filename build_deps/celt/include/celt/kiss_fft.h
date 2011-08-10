@@ -10,7 +10,6 @@ Redistribution and use in source and binary forms, with or without modification,
 
     * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-    * Neither the author nor the names of any contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
@@ -51,9 +50,11 @@ extern "C" {
 
 #ifdef FIXED_POINT
 #include "arch.h"	
+#define DOUBLE_PRECISION
+
 #ifdef DOUBLE_PRECISION
 #  define kiss_fft_scalar celt_int32
-#  define kiss_twiddle_scalar celt_int32
+#  define kiss_twiddle_scalar celt_int16
 #  define KF_SUFFIX _celt_double
 #else
 #  define kiss_fft_scalar celt_int16
@@ -69,20 +70,21 @@ extern "C" {
 # endif
 #endif
 
-
+#if 0
 /* This adds a suffix to all the kiss_fft functions so we
    can easily link with more than one copy of the fft */
 #define CAT_SUFFIX(a,b) a ## b
 #define SUF(a,b) CAT_SUFFIX(a, b)
 
+#define kiss_fft_alloc_twiddles SUF(kiss_fft_alloc_twiddles,KF_SUFFIX)
 #define kiss_fft_alloc SUF(kiss_fft_alloc,KF_SUFFIX)
-#define kf_work SUF(kf_work,KF_SUFFIX)
-#define ki_work SUF(ki_work,KF_SUFFIX)
 #define kiss_fft SUF(kiss_fft,KF_SUFFIX)
 #define kiss_ifft SUF(kiss_ifft,KF_SUFFIX)
 #define kiss_fft_stride SUF(kiss_fft_stride,KF_SUFFIX)
 #define kiss_ifft_stride SUF(kiss_ifft_stride,KF_SUFFIX)
+#define kiss_fft_free SUF(kiss_fft_free,KF_SUFFIX)
 
+#endif
 
 typedef struct {
     kiss_fft_scalar r;
@@ -94,7 +96,24 @@ typedef struct {
    kiss_twiddle_scalar i;
 }kiss_twiddle_cpx;
 
-typedef struct kiss_fft_state* kiss_fft_cfg;
+#define MAXFACTORS 8
+/* e.g. an fft of length 128 has 4 factors
+ as far as kissfft is concerned
+ 4*4*4*2
+ */
+
+typedef struct kiss_fft_state{
+    int nfft;
+#ifndef FIXED_POINT
+    kiss_fft_scalar scale;
+#endif
+    int shift;
+    celt_int16 factors[2*MAXFACTORS];
+    const celt_int16 *bitrev;
+    const kiss_twiddle_cpx *twiddles;
+} kiss_fft_state;
+
+//typedef struct kiss_fft_state* kiss_fft_cfg;
 
 /** 
  *  kiss_fft_alloc
@@ -119,14 +138,9 @@ typedef struct kiss_fft_state* kiss_fft_cfg;
  *      buffer size in *lenmem.
  * */
 
-kiss_fft_cfg kiss_fft_alloc(int nfft,void * mem,size_t * lenmem); 
+kiss_fft_state *kiss_fft_alloc_twiddles(int nfft,void * mem,size_t * lenmem, const kiss_fft_state *base);
 
-void kf_work(kiss_fft_cpx * Fout,const kiss_fft_cpx * f,const size_t fstride,
-             int in_stride,int * factors,const kiss_fft_cfg st,int N,int s2,int m2);
-
-/** Internal function. Can be useful when you want to do the bit-reversing yourself */
-void ki_work(kiss_fft_cpx * Fout, const kiss_fft_cpx * f, const size_t fstride,
-             int in_stride,int * factors,const kiss_fft_cfg st,int N,int s2,int m2);
+kiss_fft_state *kiss_fft_alloc(int nfft,void * mem,size_t * lenmem);
 
 /**
  * kiss_fft(cfg,in_out_buf)
@@ -138,18 +152,10 @@ void ki_work(kiss_fft_cpx * Fout, const kiss_fft_cpx * f, const size_t fstride,
  * Note that each element is complex and can be accessed like
     f[k].r and f[k].i
  * */
-void kiss_fft(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout);
-void kiss_ifft(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout);
+void kiss_fft(const kiss_fft_state *cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout);
+void kiss_ifft(const kiss_fft_state *cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout);
 
-/**
- A more generic version of the above function. It reads its input from every Nth sample.
- * */
-void kiss_fft_stride(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout,int fin_stride);
-void kiss_ifft_stride(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout,int fin_stride);
-
-/** If kiss_fft_alloc allocated a buffer, it is one contiguous 
-   buffer and can be simply free()d when no longer needed*/
-#define kiss_fft_free celt_free
+void kiss_fft_free(const kiss_fft_state *cfg);
 
 
 #ifdef __cplusplus

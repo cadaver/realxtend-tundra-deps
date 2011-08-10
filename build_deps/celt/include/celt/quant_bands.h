@@ -13,10 +13,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -39,33 +35,28 @@
 #include "entdec.h"
 #include "mathops.h"
 
-static inline celt_word16 amp2Log(celt_word32 amp)
-{
-	return celt_log2(MAX32(QCONST32(.001f,14),SHL32(amp,2)));
-}
+void amp2Log2(const CELTMode *m, int effEnd, int end,
+      celt_ener *bandE, celt_word16 *bandLogE, int _C);
 
-static inline celt_word32 log2Amp(celt_word16 lg)
-{
-	return PSHR32(celt_exp2(SHL16(lg,3)),4);
-}
+void log2Amp(const CELTMode *m, int start, int end,
+      celt_ener *eBands, celt_word16 *oldEBands, int _C);
 
-int *quant_prob_alloc(const CELTMode *m);
-void quant_prob_free(int *freq);
+unsigned char *quant_prob_alloc(const CELTMode *m);
+void quant_prob_free(const celt_int16 *freq);
 
-void compute_fine_allocation(const CELTMode *m, int *bits, int budget);
+void quant_coarse_energy(const CELTMode *m, int start, int end, int effEnd,
+      const celt_word16 *eBands, celt_word16 *oldEBands, ec_uint32 budget,
+      celt_word16 *error, ec_enc *enc, int _C, int LM,
+      int nbAvailableBytes, int force_intra, int *delayedIntra, int two_pass);
 
-int intra_decision(celt_word16 *eBands, celt_word16 *oldEBands, int len);
+void quant_fine_energy(const CELTMode *m, int start, int end, celt_word16 *oldEBands, celt_word16 *error, int *fine_quant, ec_enc *enc, int _C);
 
-unsigned quant_coarse_energy(const CELTMode *m, celt_word16 *eBands, celt_word16 *oldEBands, int budget, int intra, int *prob, celt_word16 *error, ec_enc *enc, int _C);
+void quant_energy_finalise(const CELTMode *m, int start, int end, celt_word16 *oldEBands, celt_word16 *error, int *fine_quant, int *fine_priority, int bits_left, ec_enc *enc, int _C);
 
-void quant_fine_energy(const CELTMode *m, celt_ener *eBands, celt_word16 *oldEBands, celt_word16 *error, int *fine_quant, ec_enc *enc, int _C);
+void unquant_coarse_energy(const CELTMode *m, int start, int end, celt_word16 *oldEBands, int intra, ec_dec *dec, int _C, int LM);
 
-void quant_energy_finalise(const CELTMode *m, celt_ener *eBands, celt_word16 *oldEBands, celt_word16 *error, int *fine_quant, int *fine_priority, int bits_left, ec_enc *enc, int _C);
+void unquant_fine_energy(const CELTMode *m, int start, int end, celt_word16 *oldEBands, int *fine_quant, ec_dec *dec, int _C);
 
-void unquant_coarse_energy(const CELTMode *m, celt_ener *eBands, celt_word16 *oldEBands, int budget, int intra, int *prob, ec_dec *dec, int _C);
-
-void unquant_fine_energy(const CELTMode *m, celt_ener *eBands, celt_word16 *oldEBands, int *fine_quant, ec_dec *dec, int _C);
-
-void unquant_energy_finalise(const CELTMode *m, celt_ener *eBands, celt_word16 *oldEBands, int *fine_quant, int *fine_priority, int bits_left, ec_dec *dec, int _C);
+void unquant_energy_finalise(const CELTMode *m, int start, int end, celt_word16 *oldEBands, int *fine_quant, int *fine_priority, int bits_left, ec_dec *dec, int _C);
 
 #endif /* QUANT_BANDS */

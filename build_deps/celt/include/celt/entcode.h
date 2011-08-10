@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2008 Timothy B. Terriberry
+/* Copyright (c) 2001-2011 Timothy B. Terriberry
    Copyright (c) 2008-2009 Xiph.Org Foundation */
 /*
    Redistribution and use in source and binary forms, with or without
@@ -11,10 +11,6 @@
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -34,62 +30,102 @@
 #if !defined(_entcode_H)
 # define _entcode_H (1)
 # include <limits.h>
+# include <stddef.h>
 # include "ecintrin.h"
 
 
 
-typedef celt_int32 ec_int32;
-typedef celt_uint32 ec_uint32;
-typedef struct ec_byte_buffer ec_byte_buffer;
+typedef celt_int32            ec_int32;
+typedef celt_uint32           ec_uint32;
+typedef celt_uint32           ec_window;
+typedef struct ec_ctx         ec_ctx;
+typedef struct ec_ctx         ec_enc;
+typedef struct ec_ctx         ec_dec;
 
 
 
-/*The number of bits to code at a time when coding bits directly.*/
-# define EC_UNIT_BITS  (8)
-/*The mask for the given bits.*/
-# define EC_UNIT_MASK  ((1U<<EC_UNIT_BITS)-1)
+/*OPT: This must be at least 32 bits, but if you have fast arithmetic on a
+   larger type, you can speed up the decoder by using it for ec_window.*/
+# define EC_WINDOW_SIZE ((int)sizeof(ec_window)*CHAR_BIT)
+
+/*The number of bits to use for the range-coded part of unsigned integers.*/
+# define EC_UINT_BITS   (8)
+
+/*The resolution of fractional-precision bit usage measurements, i.e.,
+   3 => 1/8th bits.*/
+# define BITRES 3
 
 
 
-/*Simple libogg1-style buffer.*/
-struct ec_byte_buffer{
-  unsigned char *buf;
-  unsigned char *ptr;
-  unsigned char *end_ptr;
-  long           storage;
+/*The entropy encoder/decoder context.
+  We use the same structure for both, so that common functions like ec_tell()
+   can be used on either one.*/
+struct ec_ctx{
+   /*Buffered input/output.*/
+   unsigned char *buf;
+   /*The size of the buffer.*/
+   ec_uint32      storage;
+   /*The offset at which the last byte containing raw bits was read/written.*/
+   ec_uint32      end_offs;
+   /*Bits that will be read from/written at the end.*/
+   ec_window      end_window;
+   /*Number of valid bits in end_window.*/
+   int            nend_bits;
+   /*The total number of whole bits read/written.
+     This does not include partial bits currently in the range coder.*/
+   int            nbits_total;
+   /*The offset at which the next range coder byte will be read/written.*/
+   ec_uint32      offs;
+   /*The number of values in the current range.*/
+   ec_uint32      rng;
+   /*In the decoder: the difference between the top of the current range and
+      the input value, minus one.
+     In the encoder: the low end of the current range.*/
+   ec_uint32      val;
+   /*In the decoder: the saved normalization factor from ec_decode().
+     In the encoder: the number of oustanding carry propagating symbols.*/
+   ec_uint32      ext;
+   /*A buffered input/output symbol, awaiting carry propagation.*/
+   int            rem;
+   /*Nonzero if an error occurred.*/
+   int            error;
 };
 
-/*Encoding functions.*/
-void ec_byte_writeinit_buffer(ec_byte_buffer *_b, unsigned char *_buf, long _size);
-void ec_byte_shrink(ec_byte_buffer *_b, long _size);
-void ec_byte_writeinit(ec_byte_buffer *_b);
-void ec_byte_writetrunc(ec_byte_buffer *_b,long _bytes);
-void ec_byte_write1(ec_byte_buffer *_b,unsigned _value);
-void ec_byte_write_at_end(ec_byte_buffer *_b,unsigned _value);
-void ec_byte_write4(ec_byte_buffer *_b,ec_uint32 _value);
-void ec_byte_writecopy(ec_byte_buffer *_b,void *_source,long _bytes);
-void ec_byte_writeclear(ec_byte_buffer *_b);
-/*Decoding functions.*/
-void ec_byte_readinit(ec_byte_buffer *_b,unsigned char *_buf,long _bytes);
-int ec_byte_look1(ec_byte_buffer *_b);
-unsigned char ec_byte_look_at_end(ec_byte_buffer *_b);
-int ec_byte_look4(ec_byte_buffer *_b,ec_uint32 *_val);
-void ec_byte_adv1(ec_byte_buffer *_b);
-void ec_byte_adv4(ec_byte_buffer *_b);
-int ec_byte_read1(ec_byte_buffer *_b);
-int ec_byte_read4(ec_byte_buffer *_b,ec_uint32 *_val);
+
 /*Shared functions.*/
-static inline void ec_byte_reset(ec_byte_buffer *_b){
-   _b->ptr=_b->buf;
+static inline void ec_reset(ec_ctx *_this){
+  _this->offs=_this->end_offs=0;
 }
 
-static inline long ec_byte_bytes(ec_byte_buffer *_b){
-   return _b->ptr-_b->buf;
+static inline ec_uint32 ec_range_bytes(ec_ctx *_this){
+  return _this->offs;
 }
 
-static inline unsigned char *ec_byte_get_buffer(ec_byte_buffer *_b){
-   return _b->buf;
+static inline unsigned char *ec_get_buffer(ec_ctx *_this){
+  return _this->buf;
 }
+
+static inline int ec_get_error(ec_ctx *_this){
+  return _this->error;
+}
+
+/*Returns the number of bits "used" by the encoded or decoded symbols so far.
+  This same number can be computed in either the encoder or the decoder, and is
+   suitable for making coding decisions.
+  Return: The number of bits.
+          This will always be slightly larger than the exact value (e.g., all
+           rounding error is in the positive direction).*/
+static inline int ec_tell(ec_ctx *_this){
+  return _this->nbits_total-EC_ILOG(_this->rng);
+}
+
+/*Returns the number of bits "used" by the encoded or decoded symbols so far.
+  This same number can be computed in either the encoder or the decoder, and is
+   suitable for making coding decisions.
+  Return: The number of bits scaled by 2**BITRES.
+          This will always be slightly larger than the exact value (e.g., all
+           rounding error is in the positive direction).*/
+ec_uint32 ec_tell_frac(ec_ctx *_this);
 
 int ec_ilog(ec_uint32 _v);
 

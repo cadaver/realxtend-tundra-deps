@@ -1,4 +1,4 @@
-/* Copyright (c) 2001-2008 Timothy B. Terriberry
+/* Copyright (c) 2001-2011 Timothy B. Terriberry
    Copyright (c) 2008-2009 Xiph.Org Foundation */
 /*
    Redistribution and use in source and binary forms, with or without
@@ -11,10 +11,6 @@
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -36,34 +32,10 @@
 
 
 
-typedef struct ec_enc ec_enc;
-
-
-
-/*The entropy encoder.*/
-struct ec_enc{
-   /*Buffered output.*/
-   ec_byte_buffer *buf;
-   /*A buffered output symbol, awaiting carry propagation.*/
-   int             rem;
-   /*Number of extra carry propagating symbols.*/
-   size_t          ext;
-   /*The number of values in the current range.*/
-   ec_uint32       rng;
-   /*The low end of the current range (inclusive).*/
-   ec_uint32       low;
-   /*Byte that will be written at the end*/
-   unsigned char   end_byte;
-   /*Number of valid bits in end_byte*/
-   int             end_bits_left;
-   int             nb_end_bits;
-};
-
-
 /*Initializes the encoder.
-  _buf: The buffer to store output bytes in.
-        This must have already been initialized for writing and reset.*/
-void ec_enc_init(ec_enc *_this,ec_byte_buffer *_buf);
+  _buf:  The buffer to store output bytes in.
+  _size: The size of the buffer, in chars.*/
+void ec_enc_init(ec_enc *_this,unsigned char *_buf,ec_uint32 _size);
 /*Encodes a symbol given its frequency information.
   The frequency information must be discernable by the decoder, assuming it
    has read only the previous symbols from the stream.
@@ -78,31 +50,59 @@ void ec_enc_init(ec_enc *_this,ec_byte_buffer *_buf);
         decoded value will fall.
   _ft: The sum of the frequencies of all the symbols*/
 void ec_encode(ec_enc *_this,unsigned _fl,unsigned _fh,unsigned _ft);
+
+/*Equivalent to ec_encode() with _ft==1<<_bits.*/
 void ec_encode_bin(ec_enc *_this,unsigned _fl,unsigned _fh,unsigned _bits);
-void ec_encode_raw(ec_enc *_this,unsigned _fl,unsigned _fh,unsigned bits);
-/*Encodes a sequence of raw bits in the stream.
-  _fl:  The bits to encode.
-  _ftb: The number of bits to encode.
-        This must be at least one, and no more than 32.*/
-void ec_enc_bits(ec_enc *_this,ec_uint32 _fl,int _ftb);
+
+/* Encode a bit that has a 1/(1<<_logp) probability of being a one */
+void ec_enc_bit_logp(ec_enc *_this,int _val,unsigned _logp);
+
+/*Encodes a symbol given an "inverse" CDF table.
+  _s:    The index of the symbol to encode.
+  _icdf: The "inverse" CDF, such that symbol _s falls in the range
+          [_s>0?ft-_icdf[_s-1]:0,ft-_icdf[_s]), where ft=1<<_ftb.
+         The values must be monotonically non-increasing, and the last value
+          must be 0.
+  _ftb: The number of bits of precision in the cumulative distribution.*/
+void ec_enc_icdf(ec_enc *_this,int _s,const unsigned char *_icdf,unsigned _ftb);
+
 /*Encodes a raw unsigned integer in the stream.
   _fl: The integer to encode.
   _ft: The number of integers that can be encoded (one more than the max).
        This must be at least one, and no more than 2**32-1.*/
 void ec_enc_uint(ec_enc *_this,ec_uint32 _fl,ec_uint32 _ft);
 
-/*Returns the number of bits "used" by the encoded symbols so far.
-  The actual number of bits may be larger, due to rounding to whole bytes, or
-   smaller, due to trailing zeros that can be stripped, so this is not an
-   estimate of the true packet size.
-  This same number can be computed by the decoder, and is suitable for making
-   coding decisions.
-  _b: The number of extra bits of precision to include.
-      At most 16 will be accurate.
-  Return: The number of bits scaled by 2**_b.
-          This will always be slightly larger than the exact value (e.g., all
-           rounding error is in the positive direction).*/
-long ec_enc_tell(ec_enc *_this,int _b);
+/*Encodes a sequence of raw bits in the stream.
+  _fl:  The bits to encode.
+  _ftb: The number of bits to encode.
+        This must be between 0 and 25, inclusive.*/
+void ec_enc_bits(ec_enc *_this,ec_uint32 _fl,unsigned _ftb);
+
+/*Overwrites a few bits at the very start of an existing stream, after they
+   have already been encoded.
+  This makes it possible to have a few flags up front, where it is easy for
+   decoders to access them without parsing the whole stream, even if their
+   values are not determined until late in the encoding process, without having
+   to buffer all the intermediate symbols in the encoder.
+  In order for this to work, at least _nbits bits must have already been
+   encoded using probabilities that are an exact power of two.
+  The encoder can verify the number of encoded bits is sufficient, but cannot
+   check this latter condition.
+  _val:   The bits to encode (in the least _nbits significant bits).
+          They will be decoded in order from most-significant to least.
+  _nbits: The number of bits to overwrite.
+          This must be no more than 8.*/
+void ec_enc_patch_initial_bits(ec_enc *_this,unsigned _val,unsigned _nbits);
+
+/*Compacts the data to fit in the target size.
+  This moves up the raw bits at the end of the current buffer so they are at
+   the end of the new buffer size.
+  The caller must ensure that the amount of data that's already been written
+   will fit in the new size.
+  _size: The number of bytes in the new buffer.
+         This must be large enough to contain the bits already written, and
+          must be no larger than the existing size.*/
+void ec_enc_shrink(ec_enc *_this,ec_uint32 _size);
 
 /*Indicates that there are no more symbols to encode.
   All reamining output bytes are flushed to the output buffer.

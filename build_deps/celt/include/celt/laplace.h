@@ -13,10 +13,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -33,24 +29,20 @@
 #include "entenc.h"
 #include "entdec.h"
 
-int ec_laplace_get_start_freq(int decay);
-
 /** Encode a value that is assumed to be the realisation of a
     Laplace-distributed random process
  @param enc Entropy encoder state
  @param value Value to encode
+ @param fs Probability of 0, multiplied by 32768
  @param decay Probability of the value +/- 1, multiplied by 16384
 */
-void ec_laplace_encode(ec_enc *enc, int *value, int decay);
-
-void ec_laplace_encode_start(ec_enc *enc, int *value, int decay, int fs);
+void ec_laplace_encode(ec_enc *enc, int *value, int fs, int decay);
 
 /** Decode a value that is assumed to be the realisation of a
     Laplace-distributed random process
  @param dec Entropy decoder state
+ @param fs Probability of 0, multiplied by 32768
  @param decay Probability of the value +/- 1, multiplied by 16384
  @return Value decoded
  */
-int ec_laplace_decode(ec_dec *dec, int decay);
-
-int ec_laplace_decode_start(ec_dec *dec, int decay, int fs);
+int ec_laplace_decode(ec_dec *dec, int fs, int decay);

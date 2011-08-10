@@ -14,10 +14,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -38,23 +34,12 @@
 #include "celt.h"
 #include "arch.h"
 #include "mdct.h"
-#include "pitch.h"
+#include "entenc.h"
+#include "entdec.h"
 
-#define CELT_BITSTREAM_VERSION 0x8000000b
-
-#ifdef STATIC_MODES
-#include "static_modes.h"
-#endif
+#define CELT_BITSTREAM_VERSION 0x80000010
 
 #define MAX_PERIOD 1024
-
-#ifndef MCHANNELS
-# ifdef DISABLE_STEREO
-#  define MCHANNELS(mode) (1)
-# else
-#  define MCHANNELS(mode) ((mode)->nbChannels)
-# endif
-#endif
 
 #ifndef CHANNELS
 # ifdef DISABLE_STEREO
@@ -64,8 +49,6 @@
 # endif
 #endif
 
-#define MDCT(mode) (&(mode)->mdct)
-
 #ifndef OVERLAP
 #define OVERLAP(mode) ((mode)->overlap)
 #endif
@@ -74,41 +57,54 @@
 #define FRAMESIZE(mode) ((mode)->mdctSize)
 #endif
 
+typedef struct {
+   int size;
+   const celt_int16 *index;
+   const unsigned char *bits;
+   const unsigned char *caps;
+} PulseCache;
+
 /** Mode definition (opaque)
  @brief Mode definition 
  */
 struct CELTMode {
-   celt_uint32 marker_start;
    celt_int32 Fs;
    int          overlap;
-   int          mdctSize;
 
    int          nbEBands;
-   int          pitchEnd;
-   
+   int          effEBands;
+   celt_word16    preemph[4];
    const celt_int16   *eBands;   /**< Definition for each "pseudo-critical band" */
    
-   celt_word16 ePredCoef;/**< Prediction coefficient for the energy encoding */
-   
    int          nbAllocVectors; /**< Number of lines in the matrix below */
-   const celt_int16   *allocVectors;   /**< Number of bits in each band for several rates */
+   const unsigned char   *allocVectors;   /**< Number of bits in each band for several rates */
    
-   const celt_int16 * const *bits; /**< Cache for pulses->bits mapping in each band */
-
    /* Stuff that could go in the {en,de}coder, but we save space this way */
    mdct_lookup mdct;
 
    const celt_word16 *window;
 
+   int         maxLM;
    int         nbShortMdcts;
    int         shortMdctSize;
-   mdct_lookup shortMdct;
-   const celt_word16 *shortWindow;
 
-   int *prob;
-   celt_uint32 marker_end;
+   const celt_int16 *logN;
+
+   PulseCache cache;
 };
 
-int check_mode(const CELTMode *mode);
+#ifndef OPUS_BUILD
+#define CELT_STATIC static
+#else
+#define CELT_STATIC
+#endif
+
+#ifdef OPUS_BUILD
+/* Prototypes for _ec versions of the encoder/decoder calls (not public) */
+int celt_encode_with_ec(CELTEncoder * restrict st, const celt_int16 * pcm, int frame_size, unsigned char *compressed, int nbCompressedBytes, ec_enc *enc);
+int celt_encode_with_ec_float(CELTEncoder * restrict st, const float * pcm, int frame_size, unsigned char *compressed, int nbCompressedBytes, ec_enc *enc);
+int celt_decode_with_ec(CELTDecoder * restrict st, const unsigned char *data, int len, celt_int16 * restrict pcm, int frame_size, ec_dec *dec);
+int celt_decode_with_ec_float(CELTDecoder * restrict st, const unsigned char *data, int len, float * restrict pcm, int frame_size, ec_dec *dec);
+#endif /* OPUS_BUILD */
 
 #endif

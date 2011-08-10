@@ -19,10 +19,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
    
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-   
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -78,9 +74,11 @@ extern "C" {
 #define CELT_GET_MODE_REQUEST    1
 /** Get the CELTMode used by an encoder or decoder */
 #define CELT_GET_MODE(x) CELT_GET_MODE_REQUEST, _celt_check_mode_ptr_ptr(x)
+
 #define CELT_SET_COMPLEXITY_REQUEST    2
 /** Controls the complexity from 0-10 (int) */
 #define CELT_SET_COMPLEXITY(x) CELT_SET_COMPLEXITY_REQUEST, _celt_check_int(x)
+
 #define CELT_SET_PREDICTION_REQUEST    4
 /** Controls the use of interframe prediction.
     0=Independent frames
@@ -88,15 +86,33 @@ extern "C" {
     2=Long term prediction allowed
  */
 #define CELT_SET_PREDICTION(x) CELT_SET_PREDICTION_REQUEST, _celt_check_int(x)
-#define CELT_SET_VBR_RATE_REQUEST    6
+
+#define CELT_SET_BITRATE_REQUEST    6
 /** Set the target VBR rate in bits per second(int); 0=CBR (default) */
-#define CELT_SET_VBR_RATE(x) CELT_SET_VBR_RATE_REQUEST, _celt_check_int(x)
+#define CELT_SET_BITRATE(x) CELT_SET_BITRATE_REQUEST, _celt_check_int(x)
+
 /** Reset the encoder/decoder memories to zero*/
 #define CELT_RESET_STATE_REQUEST        8
 #define CELT_RESET_STATE       CELT_RESET_STATE_REQUEST
 
-/** GET the frame size used in the current mode */
-#define CELT_GET_FRAME_SIZE   1000
+#define CELT_SET_VBR_CONSTRAINT_REQUEST 10
+#define CELT_SET_VBR_CONSTRAINT(x)       CELT_SET_VBR_CONSTRAINT_REQUEST, _celt_check_int(x)
+
+#define CELT_SET_VBR_REQUEST 12
+#define CELT_SET_VBR(x)       CELT_SET_VBR_REQUEST, _celt_check_int(x)
+
+#define CELT_SET_INPUT_CLIPPING_REQUEST    14
+#define CELT_SET_INPUT_CLIPPING(x) CELT_SET_INPUT_CLIPPING_REQUEST, _celt_check_int(x)
+
+#define CELT_SET_START_BAND_REQUEST    10000
+#define CELT_SET_START_BAND(x) CELT_SET_START_BAND_REQUEST, _celt_check_int(x)
+
+#define CELT_SET_END_BAND_REQUEST    10001
+#define CELT_SET_END_BAND(x) CELT_SET_END_BAND_REQUEST, _celt_check_int(x)
+
+#define CELT_SET_CHANNELS_REQUEST    10002
+#define CELT_SET_CHANNELS(x) CELT_SET_CHANNELS_REQUEST, _celt_check_int(x)
+
 /** GET the lookahead used in the current mode */
 #define CELT_GET_LOOKAHEAD    1001
 /** GET the sample rate used in the current mode */
@@ -152,8 +168,19 @@ EXPORT int celt_mode_info(const CELTMode *mode, int request, celt_int32 *value);
 
 /* Encoder stuff */
 
+EXPORT int celt_encoder_get_size(int channels);
+
+EXPORT int celt_encoder_get_size_custom(const CELTMode *mode, int channels);
 
 /** Creates a new encoder state. Each stream needs its own encoder 
+    state (can't be shared across simultaneous streams).
+ @param channels Number of channels
+ @param error Returns an error code
+ @return Newly created encoder state.
+*/
+EXPORT CELTEncoder *celt_encoder_create(int sampling_rate, int channels, int *error);
+
+/** Creates a new encoder state. Each stream needs its own encoder
     state (can't be shared across simultaneous streams).
  @param mode Contains all the information about the characteristics of
  *  the stream (must be the same characteristics as used for the 
@@ -162,7 +189,11 @@ EXPORT int celt_mode_info(const CELTMode *mode, int request, celt_int32 *value);
  @param error Returns an error code
  @return Newly created encoder state.
 */
-EXPORT CELTEncoder *celt_encoder_create(const CELTMode *mode, int channels, int *error);
+EXPORT CELTEncoder *celt_encoder_create_custom(const CELTMode *mode, int channels, int *error);
+
+EXPORT CELTEncoder *celt_encoder_init(CELTEncoder *st, int sampling_rate, int channels, int *error);
+
+EXPORT CELTEncoder *celt_encoder_init_custom(CELTEncoder *st, const CELTMode *mode, int channels, int *error);
 
 /** Destroys a an encoder state.
  @param st Encoder state to be destroyed
@@ -171,47 +202,39 @@ EXPORT void celt_encoder_destroy(CELTEncoder *st);
 
 /** Encodes a frame of audio.
  @param st Encoder state
- @param pcm PCM audio in float format, with a normal range of ±1.0. 
- *          Samples with a range beyond ±1.0 are supported but will 
- *          be clipped by decoders using the integer API and should 
- *          only be used if it is known that the far end supports 
+ @param pcm PCM audio in float format, with a normal range of ±1.0.
+ *          Samples with a range beyond ±1.0 are supported but will
+ *          be clipped by decoders using the integer API and should
+ *          only be used if it is known that the far end supports
  *          extended dynmaic range. There must be exactly
- *          frame_size samples per channel. 
- @param optional_synthesis If not NULL, the encoder copies the audio signal that
- *          the decoder would decode. It is the same as calling the
- *          decoder on the compressed data, just faster.
- *          This may alias pcm. 
+ *          frame_size samples per channel.
  @param compressed The compressed data is written here. This may not alias pcm or
  *                 optional_synthesis.
  @param nbCompressedBytes Maximum number of bytes to use for compressing the frame
  *          (can change from one frame to another)
- @return Number of bytes written to "compressed". Will be the same as 
+ @return Number of bytes written to "compressed". Will be the same as
  *       "nbCompressedBytes" unless the stream is VBR and will never be larger.
  *       If negative, an error has occurred (see error codes). It is IMPORTANT that
  *       the length returned be somehow transmitted to the decoder. Otherwise, no
  *       decoding is possible.
 */
-EXPORT int celt_encode_float(CELTEncoder *st, const float *pcm, float *optional_synthesis, unsigned char *compressed, int nbCompressedBytes);
+EXPORT int celt_encode_float(CELTEncoder *st, const float *pcm, int frame_size, unsigned char *compressed, int maxCompressedBytes);
 
 /** Encodes a frame of audio.
  @param st Encoder state
- @param pcm PCM audio in signed 16-bit format (native endian). There must be 
- *          exactly frame_size samples per channel. 
- @param optional_synthesis If not NULL, the encoder copies the audio signal that
- *                         the decoder would decode. It is the same as calling the
- *                         decoder on the compressed data, just faster.
- *                         This may alias pcm. 
+ @param pcm PCM audio in signed 16-bit format (native endian). There must be
+ *          exactly frame_size samples per channel.
  @param compressed The compressed data is written here. This may not alias pcm or
  *                         optional_synthesis.
  @param nbCompressedBytes Maximum number of bytes to use for compressing the frame
  *                        (can change from one frame to another)
- @return Number of bytes written to "compressed". Will be the same as 
+ @return Number of bytes written to "compressed". Will be the same as
  *       "nbCompressedBytes" unless the stream is VBR and will never be larger.
  *       If negative, an error has occurred (see error codes). It is IMPORTANT that
  *       the length returned be somehow transmitted to the decoder. Otherwise, no
  *       decoding is possible.
  */
-EXPORT int celt_encode(CELTEncoder *st, const celt_int16 *pcm, celt_int16 *optional_synthesis, unsigned char *compressed, int nbCompressedBytes);
+EXPORT int celt_encode(CELTEncoder *st, const celt_int16 *pcm, int frame_size, unsigned char *compressed, int maxCompressedBytes);
 
 /** Query and set encoder parameters 
  @param st Encoder state
@@ -223,6 +246,9 @@ EXPORT int celt_encoder_ctl(CELTEncoder * st, int request, ...);
 
 /* Decoder stuff */
 
+EXPORT int celt_decoder_get_size(int channels);
+
+EXPORT int celt_decoder_get_size_custom(const CELTMode *mode, int channels);
 
 /** Creates a new decoder state. Each stream needs its own decoder state (can't
     be shared across simultaneous streams).
@@ -232,7 +258,21 @@ EXPORT int celt_encoder_ctl(CELTEncoder * st, int request, ...);
  @param error Returns an error code
  @return Newly created decoder state.
  */
-EXPORT CELTDecoder *celt_decoder_create(const CELTMode *mode, int channels, int *error);
+EXPORT CELTDecoder *celt_decoder_create(int sampling_rate, int channels, int *error);
+
+/** Creates a new decoder state. Each stream needs its own decoder state (can't
+    be shared across simultaneous streams).
+ @param mode Contains all the information about the characteristics of the
+             stream (must be the same characteristics as used for the encoder)
+ @param channels Number of channels
+ @param error Returns an error code
+ @return Newly created decoder state.
+ */
+EXPORT CELTDecoder *celt_decoder_create_custom(const CELTMode *mode, int channels, int *error);
+
+EXPORT CELTDecoder *celt_decoder_init(CELTDecoder *st, int sampling_rate, int channels, int *error);
+
+EXPORT CELTDecoder *celt_decoder_init_custom(CELTDecoder *st, const CELTMode *mode, int channels, int *error);
 
 /** Destroys a a decoder state.
  @param st Decoder state to be destroyed
@@ -248,7 +288,7 @@ EXPORT void celt_decoder_destroy(CELTDecoder *st);
             returned here in float format. 
  @return Error code.
    */
-EXPORT int celt_decode_float(CELTDecoder *st, const unsigned char *data, int len, float *pcm);
+EXPORT int celt_decode_float(CELTDecoder *st, const unsigned char *data, int len, float *pcm, int frame_size);
 
 /** Decodes a frame of audio.
  @param st Decoder state
@@ -259,7 +299,7 @@ EXPORT int celt_decode_float(CELTDecoder *st, const unsigned char *data, int len
             returned here in 16-bit PCM format (native endian). 
  @return Error code.
  */
-EXPORT int celt_decode(CELTDecoder *st, const unsigned char *data, int len, celt_int16 *pcm);
+EXPORT int celt_decode(CELTDecoder *st, const unsigned char *data, int len, celt_int16 *pcm, int frame_size);
 
 /** Query and set decoder parameters
    @param st Decoder state

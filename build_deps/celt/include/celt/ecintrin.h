@@ -12,10 +12,6 @@
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
 
-   - Neither the name of the Xiph.org Foundation nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -83,16 +79,29 @@
 /*Count leading zeros.
   This macro should only be used for implementing ec_ilog(), if it is defined.
   All other code should use EC_ILOG() instead.*/
-#ifdef __GNUC_PREREQ
-#if __GNUC_PREREQ(3,4)
-# if INT_MAX>=2147483647
-#  define EC_CLZ0 sizeof(unsigned)*CHAR_BIT
-#  define EC_CLZ(_x) (__builtin_clz(_x))
-# elif LONG_MAX>=2147483647L
-#  define EC_CLZ0 sizeof(unsigned long)*CHAR_BIT
-#  define EC_CLZ(_x) (__builtin_clzl(_x))
+#if defined(_MSC_VER)
+# include <intrin.h>
+static __inline int ec_bsr(unsigned long _x){
+  unsigned long ret;
+  _BitScanReverse(&ret,_x);
+  return (int)ret;
+}
+# define EC_CLZ0    (1)
+# define EC_CLZ(_x) (-ec_bsr(_x))
+#elif defined(ENABLE_TI_DSPLIB)
+# include "dsplib.h"
+# define EC_CLZ0    (31)
+# define EC_CLZ(_x) (_lnorm(x))
+#elif defined(__GNUC_PREREQ)
+# if __GNUC_PREREQ(3,4)
+#  if INT_MAX>=2147483647
+#   define EC_CLZ0    ((int)sizeof(unsigned)*CHAR_BIT)
+#   define EC_CLZ(_x) (__builtin_clz(_x))
+#  elif LONG_MAX>=2147483647L
+#   define EC_CLZ0    ((int)sizeof(unsigned long)*CHAR_BIT)
+#   define EC_CLZ(_x) (__builtin_clzl(_x))
+#  endif
 # endif
-#endif
 #endif
 
 #if defined(EC_CLZ)
@@ -101,36 +110,8 @@
   The majority of the time we can never pass it zero.
   When we need to, it can be special cased.*/
 # define EC_ILOG(_x) (EC_CLZ0-EC_CLZ(_x))
-#elif defined(ENABLE_TI_DSPLIB)
-#include "dsplib.h"
-#define EC_ILOG(x) (31 - _lnorm(x))
 #else
 # define EC_ILOG(_x) (ec_ilog(_x))
-#endif
-
-#ifdef __GNUC_PREREQ
-#if __GNUC_PREREQ(3,4)
-# if INT_MAX>=9223372036854775807
-#  define EC_CLZ64_0 sizeof(unsigned)*CHAR_BIT
-#  define EC_CLZ64(_x) (__builtin_clz(_x))
-# elif LONG_MAX>=9223372036854775807L
-#  define EC_CLZ64_0 sizeof(unsigned long)*CHAR_BIT
-#  define EC_CLZ64(_x) (__builtin_clzl(_x))
-# elif LLONG_MAX>=9223372036854775807LL
-#  define EC_CLZ64_0 sizeof(unsigned long long)*CHAR_BIT
-#  define EC_CLZ64(_x) (__builtin_clzll(_x))
-# endif
-#endif
-#endif
-
-#if defined(EC_CLZ64)
-/*Note that __builtin_clz is not defined when _x==0, according to the gcc
-   documentation (and that of the BSR instruction that implements it on x86).
-  The majority of the time we can never pass it zero.
-  When we need to, it can be special cased.*/
-# define EC_ILOG64(_x) (EC_CLZ64_0-EC_CLZ64(_x))
-#else
-# define EC_ILOG64(_x) (ec_ilog64(_x))
 #endif
 
 #endif
