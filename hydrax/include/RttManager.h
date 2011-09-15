@@ -295,6 +295,9 @@ namespace Hydrax
 		 */
 		void removeAllRttListeners(const bool& releaseMemory = true);
 
+        /// Sets the given camera to all render targets.
+        void setViewportCamera(Ogre::Camera* c);
+
 	private:
 		/** RttManager::CRefractionListener class
 		 */

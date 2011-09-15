@@ -1163,7 +1163,8 @@ namespace Hydrax
             return;
 
         mCamera = c;
-        _checkVisible();
+        if (mRttManager)
+            mRttManager->setViewportCamera(c);
     }
 
 }

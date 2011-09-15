@@ -66,7 +66,6 @@ namespace Hydrax{namespace Module
 		, mPos(Ogre::Vector3(0,0,0))
 		, mProjectingCamera(0)
 		, mTmpRndrngCamera(0)
-		, mRenderingCamera(h->getCamera())
 	{
 	}
 
@@ -81,7 +80,6 @@ namespace Hydrax{namespace Module
 		, mPos(Ogre::Vector3(0,0,0))
 		, mProjectingCamera(0)
 		, mTmpRndrngCamera(0)
-		, mRenderingCamera(h->getCamera())
 	{
 		setOptions(Options);
 	}
@@ -248,10 +246,10 @@ namespace Hydrax{namespace Module
 
 		Module::update(timeSinceLastFrame);
 
-		Ogre::Vector3 RenderingCameraPos = mRenderingCamera->getDerivedPosition();
+		Ogre::Vector3 RenderingCameraPos = mHydrax->getCamera()->getDerivedPosition();
 
 		if (mLastPosition    != RenderingCameraPos    ||
-			mLastOrientation != mRenderingCamera->getDerivedOrientation() ||
+			mLastOrientation != mHydrax->getCamera()->getDerivedOrientation() ||
 			mOptions.ForceRecalculateGeometry)
 		{
 			if (mLastPosition != RenderingCameraPos)
@@ -265,11 +263,11 @@ namespace Hydrax{namespace Module
 				mHydrax->setSunPosition(mHydrax->getSunPosition());
 			}
 
-			float RenderingFarClipDistance = mRenderingCamera->getFarClipDistance();
+			float RenderingFarClipDistance = mHydrax->getCamera()->getFarClipDistance();
 
 		    if (RenderingFarClipDistance > _def_MaxFarClipDistance)
 		    {
-			    mRenderingCamera->setFarClipDistance(_def_MaxFarClipDistance);
+			    mHydrax->getCamera()->setFarClipDistance(_def_MaxFarClipDistance);
 		    }
 
 			mLastMinMax = _getMinMax(&mRange);
@@ -281,7 +279,7 @@ namespace Hydrax{namespace Module
 			    mHydrax->getMesh()->updateGeometry(mOptions.Complexity*mOptions.Complexity, mVertices);
 		    }
 
-			mRenderingCamera->setFarClipDistance(RenderingFarClipDistance);
+			mHydrax->getCamera()->setFarClipDistance(RenderingFarClipDistance);
 		}
 		else if (mLastMinMax)
 		{
@@ -366,7 +364,7 @@ namespace Hydrax{namespace Module
 		}
 
 		mLastPosition = RenderingCameraPos;
-		mLastOrientation = mRenderingCamera->getDerivedOrientation();
+		mLastOrientation = mHydrax->getCamera()->getDerivedOrientation();
 	}
 
 	bool ProjectedGrid::_renderGeometry(const Ogre::Matrix4& m,const Ogre::Matrix4& _viewMat, const Ogre::Vector3& WorldPos)
@@ -560,7 +558,7 @@ namespace Hydrax{namespace Module
 		Ogre::Vector3 CameraDir, Norm;
 		Ogre::Vector2 Dir, Perp, Norm2;
 
-		CameraDir = mRenderingCamera->getDerivedDirection();
+		CameraDir = mHydrax->getCamera()->getDerivedDirection();
 		Dir       = Ogre::Vector2(CameraDir.x, CameraDir.z).normalisedCopy();
 		Perp      = Dir.perpendicular();
 
@@ -665,14 +663,14 @@ namespace Hydrax{namespace Module
 		std::pair<bool,Ogre::Real> _result;
 
 		// Set temporal rendering camera parameters
-		mTmpRndrngCamera->setFrustumOffset(mRenderingCamera->getFrustumOffset());
-		mTmpRndrngCamera->setAspectRatio(mRenderingCamera->getAspectRatio());
-		mTmpRndrngCamera->setDirection(mRenderingCamera->getDerivedDirection());
-		mTmpRndrngCamera->setFarClipDistance(mRenderingCamera->getFarClipDistance());
-		mTmpRndrngCamera->setFOVy(mRenderingCamera->getFOVy());
-		mTmpRndrngCamera->setNearClipDistance(mRenderingCamera->getNearClipDistance());
-		mTmpRndrngCamera->setOrientation(mRenderingCamera->getDerivedOrientation());
-		mTmpRndrngCamera->setPosition(0, mRenderingCamera->getDerivedPosition().y - mHydrax->getPosition().y, 0);
+		mTmpRndrngCamera->setFrustumOffset(mHydrax->getCamera()->getFrustumOffset());
+		mTmpRndrngCamera->setAspectRatio(mHydrax->getCamera()->getAspectRatio());
+		mTmpRndrngCamera->setDirection(mHydrax->getCamera()->getDerivedDirection());
+		mTmpRndrngCamera->setFarClipDistance(mHydrax->getCamera()->getFarClipDistance());
+		mTmpRndrngCamera->setFOVy(mHydrax->getCamera()->getFOVy());
+		mTmpRndrngCamera->setNearClipDistance(mHydrax->getCamera()->getNearClipDistance());
+		mTmpRndrngCamera->setOrientation(mHydrax->getCamera()->getDerivedOrientation());
+		mTmpRndrngCamera->setPosition(0, mHydrax->getCamera()->getDerivedPosition().y - mHydrax->getPosition().y, 0);
 
 		Ogre::Matrix4 invviewproj = (mTmpRndrngCamera->getProjectionMatrixWithRSDepth()*mTmpRndrngCamera->getViewMatrix()).inverse();
 		frustum[0] = invviewproj * Ogre::Vector3(-1,-1,0);

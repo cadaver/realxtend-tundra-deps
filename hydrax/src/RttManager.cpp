@@ -437,6 +437,25 @@ namespace Hydrax
 	    mRttListeners.clear();
 	}
 
+    void RttManager::setViewportCamera(Ogre::Camera* c)
+    {
+        for(int i = 0; i < 6; ++i)
+        {
+            if (!mTextures[i].get() || !mTextures[i]->getBuffer().get())
+                continue;
+            Ogre::RenderTarget* RT_Texture = mTextures[i]->getBuffer()->getRenderTarget();
+            if (!RT_Texture)
+                continue;
+
+            if (RT_Texture->getNumViewports() == 0)
+                continue;
+            Ogre::Viewport *existingViewport = RT_Texture->getViewport(0);
+            if (!existingViewport)
+                continue;
+            existingViewport->setCamera(c);
+        }
+    }
+
 	void RttManager::_invokeRttListeners(const RttType& Rtt, const bool& pre)
 	{
 		std::vector<RttListener*>::const_iterator i;
