@@ -14,6 +14,7 @@
 #include "messages.h"
 #include "Mumble.pb.h"
 #include "visibility.h"
+#include "settings.h"
 
 namespace MumbleClient {
 
@@ -39,15 +40,21 @@ typedef boost::function<void (const Channel& channel)> ChannelAddCallbackType;
 typedef boost::function<void (const Channel& channel)> ChannelRemoveCallbackType;
 typedef boost::function<void (const boost::system::error_code& error)> ErrorCallbackType;
 
-class DLL_PUBLIC MumbleClient {
-    enum State {
+typedef boost::function<void (bool connected, const Settings connectionSettings, const std::string errorMsg)> ConnectedCallback;
+
+class DLL_PUBLIC MumbleClient 
+{
+    enum State 
+    {
         kStateNew,
         kStateHandshakeCompleted,
-        kStateAuthenticated
+        kStateAuthenticated,
+        kStateDisconnected
     };
 
 public:
     ~MumbleClient();
+
     void Connect(const Settings& s);
     void Disconnect();
     void SendMessage(PbMessageType::MessageType type, const ::google::protobuf::Message& msg, bool print);
@@ -55,6 +62,15 @@ public:
     void SendRawUdpTunnel(const char* buffer, int32_t len);
     void SendUdpMessage(const char* buffer, int32_t len);
     void JoinChannel(int32_t channel_id);
+
+    
+
+    // Get current connection settings
+    Settings CurrentSettings() { return currentSettings_; }
+
+    // This callback will be called when connection is successful or it failed.
+    // There is no separate callback for failure.
+    void SetConnectedCallback(ConnectedCallback conCB) { connected_callback_ = conCB; }
 
     void SetTextMessageCallback(TextMessageCallbackType tm) { text_message_callback_ = tm; }
     void SetAuthCallback(AuthCallbackType a) { auth_callback_ = a; }
@@ -73,9 +89,14 @@ public:
 
 private:
     friend class MumbleClientLib;
-    DLL_LOCAL MumbleClient(boost::asio::io_service* io_service);
 
-    DLL_LOCAL void DoPing(const boost::system::error_code& error);
+    DLL_LOCAL MumbleClient(boost::asio::io_service* io_service);
+    DLL_LOCAL MumbleClient(const MumbleClient&);
+    DLL_LOCAL void operator=(const MumbleClient&);
+
+    DLL_LOCAL void OnConnected(const boost::system::error_code& resolveError, boost::asio::ip::tcp::resolver::iterator endpoint_iterator);
+
+    DLL_LOCAL void SendPing(const boost::system::error_code& error);
     DLL_LOCAL void ParseMessage(const MessageHeader& msg_header, void* buffer);
     DLL_LOCAL void ProcessTCPSendQueue(const boost::system::error_code& error, const size_t bytes_transferred);
     DLL_LOCAL void SendFirstQueued();
@@ -89,6 +110,17 @@ private:
     DLL_LOCAL boost::shared_ptr<User> FindUser(int32_t session);
     DLL_LOCAL boost::shared_ptr<Channel> FindChannel(int32_t id);
 
+    // Internal state
+    Settings currentSettings_;
+    CryptState* cs_;
+    State state_;
+    
+    int32_t session_;
+    bool processing_tcp_queue_;
+    bool resolving_;
+
+    // Boost
+    boost::asio::ip::tcp::resolver *resolver_;
     boost::asio::io_service* io_service_;
 #if SSL
     boost::asio::ssl::stream<boost::asio::ip::tcp::socket>* tcp_socket_;
@@ -97,15 +129,14 @@ private:
 #endif
     boost::asio::ip::udp::socket* udp_socket_;
     boost::asio::streambuf recv_buffer_;
-    CryptState* cs_;
-    std::deque< boost::shared_ptr<Message> > send_queue_;
-    State state_;
     boost::asio::deadline_timer* ping_timer_;
-    int32_t session_;
+
+    // Containers
+    std::deque< boost::shared_ptr<Message> > send_queue_;
     std::list< boost::shared_ptr<User> > user_list_;
     std::list< boost::shared_ptr<Channel> > channel_list_;
-    bool processing_tcp_queue_;
-
+    
+    // Callbacks
     TextMessageCallbackType text_message_callback_;
     AuthCallbackType auth_callback_;
     RawUdpTunnelCallbackType raw_udp_tunnel_callback_;
@@ -115,11 +146,11 @@ private:
     ChannelAddCallbackType channel_add_callback_;
     ChannelRemoveCallbackType channel_remove_callback_;
     ErrorCallbackType error_callback_;
+    ConnectedCallback connected_callback_;
 
-    DLL_LOCAL MumbleClient(const MumbleClient&);
-    DLL_LOCAL void operator=(const MumbleClient&);
+
 };
 
-}  // namespace MumbleClient
+}
 
-#endif  // CLIENT_H_
+#endif
