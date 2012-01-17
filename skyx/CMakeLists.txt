@@ -1,126 +1,165 @@
-# Top-Level CMakeLists.txt
-# TODO: Fix find-modules for debug only found mode
-# TODO: Copy media folder to installed
-# TODO: configure scripts for resource.cfg and plugins.cfg
-PROJECT(SkyX)
+#-------------------------------------------------------------------
+# This file is part of the CMake build system for SkyX
+#
+# The contents of this file are placed in the public domain. Feel
+# free to make use of it in any way you like.
+#-------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
+######################################################################
+# SKYX BUILD SYSTEM
+# Welcome to the CMake build system for SKYX.
+# Inspired from the Ogre build system (modules FindPkgMacros.cmake,
+# This is the main file where we prepare the general build environment
+# and provide build configuration options.
+######################################################################
 
-# default to debug-builds
-IF (NOT CMAKE_BUILD_TYPE)
-  SET (CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
-ENDIF (NOT CMAKE_BUILD_TYPE)
+cmake_minimum_required(VERSION 2.6)
+cmake_policy(SET CMP0003 NEW)
 
-# use dwarf-2 debugging format on APPLE
-# TODO: TEST ON MAC
-IF (CMAKE_BUILD_TYPE STREQUAL Debug)
-  IF (APPLE)
-    add_definitions("-gdwarf-2")
-  ENDIF (APPLE)
+project(SKYX)
+# Include necessary submodules
+set(CMAKE_MODULE_PATH
+  "${SKYX_SOURCE_DIR}/CMake"
+  "${SKYX_SOURCE_DIR}/CMake/Utils"
+)
 
-  IF(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-      ADD_DEFINITIONS(-D_DEBUG)
-  ENDIF(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+include(SkyXFindPkgMacros)
+getenv_path(OGRE_HOME)
 
-  IF(MINGW)
-    ADD_DEFINITIONS(-D_DEBUG)
-    ADD_DEFINITIONS(-DWIN32)
-  ENDIF(MINGW)
-ENDIF (CMAKE_BUILD_TYPE STREQUAL Debug)
-
-# avoid some warnings on windows 
-IF(WIN32)
-  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-ENDIF(WIN32)
-
-# lib-postfix for 32/64
-IF(UNIX AND NOT WIN32 AND NOT APPLE)
-  IF(CMAKE_SIZEOF_VOID_P MATCHES "8")
-    SET(LIB_POSTFIX "64" CACHE STRING "suffix for 32/64 dir placement")
-    MARK_AS_ADVANCED(LIB_POSTFIX)
-  ENDIF(CMAKE_SIZEOF_VOID_P MATCHES "8")
-ENDIF(UNIX AND NOT WIN32 AND NOT APPLE)
-IF(NOT DEFINED LIB_POSTFIX)
-  SET(LIB_POSTFIX "")
-ENDIF(NOT DEFINED LIB_POSTFIX) 
-
-# preset install dir
-IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  SET(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/install" CACHE PATH "CMAKE_INSTALL_PREFIX" FORCE)
-ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
-# some dependencies on MacOS
-# TODO: TEST ON MAC
-IF(APPLE)
-  FIND_PATH(CARBON_INCLUDE_DIR Carbon/Carbon.h)
-  FIND_LIBRARY(CARBON_LIBRARY Carbon)
-  FIND_LIBRARY(IOKIT_LIBRARY IOKit)
-  MARK_AS_ADVANCED(CARBON_INCLUDE_DIR CARBON_LIBRARY IOKIT_LIBRARY)
-  SET(EXTRALIBS_APPLE ${CARBON_LIBRARY} ${IOKIT_LIBRARY})
-ENDIF (APPLE)
-
-# find dependencies
-FIND_PACKAGE (Ogre)
-
-if (OGRE_FOUND)
-    message (STATUS)
-    message ("Ogre")
-    message (STATUS "-- Include: " ${OGRE_INCLUDE_DIR})
-    message (STATUS "-- Lib: " ${OGRE_LIBRARIES})
-    message (STATUS)
-else ()
-    message(FATAL_ERROR "Could not find Ogre, try setting OGRE_HOME!")
+# Set where to find ogre Cmake files on unix
+if (UNIX)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/usr/local/lib/OGRE/cmake/" "/usr/lib/OGRE/cmake/")
+else (UNIX)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ENV_OGRE_HOME}/CMake)
 endif ()
 
+include(CMakeDependentOption)
+include(CheckCXXCompilerFlag)
+include(SkyXMacroLogFeature)
+include(SkyXConfigTargets)
+set(SKYX_TEMPLATES_DIR "${SKYX_SOURCE_DIR}/CMake/Templates")
+set(SKYX_WORK_DIR ${SKYX_BINARY_DIR})
+
+
+#####################################################################
+# Set up the basic build environment
+#####################################################################
+
+if (CMAKE_BUILD_TYPE STREQUAL "")
+  # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
+  # differentiation between debug and release builds.
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: None (CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif ()
+
+# determine SkyX version numbers
+include(SkyXGetVersion)
+skyx_get_version(${SKYX_SOURCE_DIR}/SkyX/Include/Prerequisites.h)
+message(STATUS "Configuring SKYX ${SKYX_VERSION}")
+
+if (NOT APPLE)
+  # Create debug libraries with _d postfix
+  set(CMAKE_DEBUG_POSTFIX "_d")
+endif ()
+
+# Set compiler specific build flags
+if (CMAKE_COMPILER_IS_GNUCXX)
+#  check_cxx_compiler_flag(-msse OGRE_GCC_HAS_SSE)
+#  if (OGRE_GCC_HAS_SSE)
+#    add_definitions(-msse)
+#  endif ()
+endif ()
 if (MSVC)
-    set(Boost_USE_MULTITHREADED TRUE)
-    set(Boost_USE_STATIC_LIBS TRUE)
-else ()
-    set(Boost_USE_STATIC_LIBS FALSE)
-endif ()
-    
-FIND_PACKAGE (Boost 1.40 COMPONENTS date_time thread)
-
-if (Boost_FOUND)
-    message (STATUS)
-    message ("Boost")
-    message (STATUS "-- Include: " ${Boost_INCLUDE_DIRS})
-    message (STATUS "-- Lib: " ${Boost_LIBRARIES})
-    message (STATUS)
-else ()
-    message(FATAL_ERROR "Could not find Boost, try setting BOOST_ROOT!")
+  add_definitions(/fp:fast)
 endif ()
 
-# Skyx projct
-file (GLOB SKYX_HEADERS include/*.h include/VClouds/*.h)
-file (GLOB SKYX_SOURCES src/*.cpp src/VClouds/*.cpp)
+if (CMAKE_COMPILER_IS_GNUCXX)
+  # Test for GCC visibility
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-fvisibility=hidden SKYX_GCC_VISIBILITY)
+  if (OGRE_GCC_VISIBILITY)
+    # determine gcc version
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+      OUTPUT_VARIABLE SKYX_GCC_VERSION
+    )
+    message(STATUS "Detected g++ ${SKYX_GCC_VERSION}")
+    message(STATUS "Enabling GCC visibility flags")
+    set(SKYX_GCC_VISIBILITY_FLAGS "-DSKYX_GCC_VISIBILITY -fvisibility=hidden")
 
-add_library (SkyX SHARED ${SKYX_SOURCES} ${SKYX_HEADERS})
-add_definitions (-DSKYX_LIB) # for windows dll export/import
+    # check if we can safely add -fvisibility-inlines-hidden
+    string(TOLOWER "${CMAKE_BUILD_TYPE}" SKYX_BUILD_TYPE)
+    if (SKYX_BUILD_TYPE STREQUAL "debug" AND SKYX_GCC_VERSION VERSION_LESS "4.2")
+      message(STATUS "Skipping -fvisibility-inlines-hidden due to possible bug in g++ < 4.2")
+    else ()
+      set(SKYX_GCC_VISIBILITY_FLAGS "${SKYX_GCC_VISIBILITY_FLAGS} -fvisibility-inlines-hidden")
+    endif ()
+  endif (OGRE_GCC_VISIBILITY)
 
-include_directories (./include)
-include_directories (${OGRE_INCLUDE_DIR})
-include_directories (${Boost_INCLUDE_DIRS})
+  # Fix x64 issues on Linux
+  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" AND NOT APPLE)
+    add_definitions(-fPIC)
+  endif()
+endif (CMAKE_COMPILER_IS_GNUCXX)
 
-target_link_libraries (SkyX ${OGRE_LIBRARIES})
-target_link_libraries (SkyX ${Boost_LIBRARIES})
+# Add Main include path
+include_directories("${SKYX_SOURCE_DIR}/SkyX/include")
 
-set_target_properties (SkyX PROPERTIES DEBUG_POSTFIX d)
-set_target_properties (SkyX PROPERTIES PREFIX "")
-set_target_properties (SkyX PROPERTIES LINK_INTERFACE_LIBRARIES "")
-set_target_properties (SkyX PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set_target_properties (SkyX PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set_target_properties (SkyX PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+# Find dependencies
+include(SkyXDependencies)
 
+# definitions for samples
+set(SKYX_LIBRARIES SkyX)
+if (NOT WIN32)
+    set(SKYX_LIBRARIES ${SKYX_LIBRARIES} pthread)
+endif(NOT WIN32)
 
-# Install: If CMAKE_INSTALL_PREFIX is not defined then goes to /install
-# define with cmake -DCMAKE_INSTALL_PREFIX=<path>
-install (TARGETS SkyX 
-         RUNTIME DESTINATION bin
-         ARCHIVE DESTINATION lib
-         LIBRARY DESTINATION lib)
+# Specify build paths
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SKYX_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${SKYX_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SKYX_BINARY_DIR}/bin")
+if (WIN32 OR APPLE)
+  if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  # We don't want to install in default system location, install is really for the SDK, so call it for that
+    set(CMAKE_INSTALL_PREFIX
+      "${SKYX_BINARY_DIR}/sdk" CACHE PATH "SKYX install prefix" FORCE)
+  endif (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+endif(WIN32 OR APPLE)
 
-install (DIRECTORY include DESTINATION .)
+######################################################################
+# Provide user options to customise the build process
+######################################################################
 
-install (DIRECTORY media DESTINATION .)
+# Customise what to build
+option(SKYX_BUILD_SAMPLES "Build SkyX demos" TRUE)
+
+# Customise what to install
+option(SKYX_INSTALL_SAMPLES "Install SkyX demos." TRUE)
+cmake_dependent_option(SKYX_INSTALL_PDB "Install debug pdb files" FALSE "MSVC" FALSE)
+cmake_dependent_option(SKYX_STATIC "Static build" FALSE "OGRE_STATIC" FALSE)
+
+###################################################################
+# configure global build settings based on selected build options
+###################################################################
+include(SkyXConfigureBuild)
+
+##################################################################
+# Now setup targets
+##################################################################
+
+# install resource files
+#include(InstallResources)
+
+# Setup SkyX core project
+add_subdirectory(SkyX)
+
+# Setup samples
+if(SKYX_BUILD_SAMPLES)
+  add_subdirectory(SkyXDemo1) # Comment this line if you're using Ogre 1.8+, since this demo uses the old Ogre Terrain Scene Manager
+  add_subdirectory(SkyXDemo2)
+  add_subdirectory(SkyXDemo3)
+endif(SKYX_BUILD_SAMPLES)
+
+# Install CMake modules
+add_subdirectory(CMake)
+
+# Install runtime files and medias
+add_subdirectory(SkyXCommon)
