@@ -100,5 +100,5 @@ install(FILES ${SKYX_HEADER_FILES}
   DESTINATION include/SkyX
 )
 install(FILES ${VCLOUDS_HEADER_FILES}
-  DESTINATION include/SKYX/VClouds
+  DESTINATION include/SkyX/VClouds
 )
