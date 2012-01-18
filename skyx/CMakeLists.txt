@@ -129,10 +129,10 @@ endif(WIN32 OR APPLE)
 ######################################################################
 
 # Customise what to build
-option(SKYX_BUILD_SAMPLES "Build SkyX demos" TRUE)
+option(SKYX_BUILD_SAMPLES "Build SkyX demos" FALSE)
 
 # Customise what to install
-option(SKYX_INSTALL_SAMPLES "Install SkyX demos." TRUE)
+option(SKYX_INSTALL_SAMPLES "Install SkyX demos." FALSE)
 cmake_dependent_option(SKYX_INSTALL_PDB "Install debug pdb files" FALSE "MSVC" FALSE)
 cmake_dependent_option(SKYX_STATIC "Static build" FALSE "OGRE_STATIC" FALSE)
 
