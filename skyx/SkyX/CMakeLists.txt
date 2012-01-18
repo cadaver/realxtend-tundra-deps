@@ -97,7 +97,7 @@ skyx_config_lib(SkyX)
 # install targets
 ###############################################################
 install(FILES ${SKYX_HEADER_FILES}
-  DESTINATION include/SKYX
+  DESTINATION include/SkyX
 )
 install(FILES ${VCLOUDS_HEADER_FILES}
   DESTINATION include/SKYX/VClouds
