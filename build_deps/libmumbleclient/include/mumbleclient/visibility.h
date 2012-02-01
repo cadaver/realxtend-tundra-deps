@@ -1,27 +1,35 @@
-#if defined(_WIN32) || defined(__CYGWIN__)
-	#if defined(BUILDING_DLL)
-		#ifdef __GNUC__
-			#define DLL_PUBLIC __attribute__((dllexport))
-		#else
-			#define DLL_PUBLIC __declspec(dllexport)
-		#endif
-	#elif defined(BUILDING_STATIC)
-		#define DLL_PUBLIC
-		#define	DLL_LOCAL
-	#else
-		#ifdef __GNUC__
-			#define DLL_PUBLIC __attribute__((dllimport))
-		#else
-			#define DLL_PUBLIC __declspec(dllimport)
-		#endif
-	#endif
-	#define DLL_LOCAL
+#ifndef _LIBMUMBLECLIENT_VISIBILITY_H_
+#define _LIBMUMBLECLIENT_VISIBILITY_H_
+
+#if _WIN32
+    // Windows dynamic lib export/import
+    #ifdef LIBMUMBLECLIENT_DYNAMIC
+        #ifdef LIBMUMBLECLIENT_EXPORT_API
+            #define DLL_PUBLIC __declspec(dllexport)
+        #else
+            #define DLL_PUBLIC __declspec(dllimport)
+        #endif
+        #define	DLL_LOCAL
+    // Windows static lib
+    #else
+        #define DLL_PUBLIC
+        #define	DLL_LOCAL
+    #endif
 #else
-	#if __GNUC__ >= 4
-		#define DLL_PUBLIC __attribute__ ((visibility("default")))
-		#define DLL_LOCAL  __attribute__ ((visibility("hidden")))
-	#else
-		#define DLL_PUBLIC
-		#define DLL_LOCAL
-	#endif
+    // Linux, use visibility __attribute__ if there for both static and dynamic
+    #if __GNUC__ >= 4
+        #define DLL_PUBLIC __attribute__ ((visibility("default")))
+        #define DLL_LOCAL  __attribute__ ((visibility("hidden")))
+    #else
+        #define DLL_PUBLIC
+        #define DLL_LOCAL
+    #endif
+#endif
+
+// All platforms static build, no special defines
+#ifdef LIBMUMBLECLIENT_STATIC
+    #define DLL_PUBLIC
+    #define	DLL_LOCAL
+#endif
+
 #endif
