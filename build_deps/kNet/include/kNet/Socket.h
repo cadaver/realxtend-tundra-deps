@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace kNet
 typedef int socklen_t;
 }
 
-#elif defined(UNIX)
+#elif defined(UNIX) || defined(ANDROID)
 
 #include <sys/types.h>
 #include <sys/socket.h>

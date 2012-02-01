@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ private:
 	void SendPacketAckMessage(); // [worker thread]
 	void HandlePacketAckMessage(const char *data, size_t numBytes); // [worker thread]
 	
-	bool HandleMessage(packet_id_t packetID, u32 messageID, const char *data, size_t numBytes); // [worker thread]
+	bool HandleMessage(packet_id_t packetID, message_id_t messageID, const char *data, size_t numBytes); // [worker thread]
 
 	/// Refreshes Packet Loss related statistics.
 	void ComputePacketLoss(); // [worker thread]
@@ -272,8 +272,6 @@ private:
 
 	/// Returns the percentage of inbound packets that are being lost, [0, 1].
 	float GetPacketLossRate() const { return packetLossRate; }
-
-	void Initialize();
 
 	void DumpConnectionStatus() const;
 

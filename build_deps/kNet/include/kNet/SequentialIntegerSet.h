@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ public:
 
 	int Capacity() const { return tableSize; }
 
-	int CountSize()
+    /// Recomputes the size of this set, so that Size() returns the exact value.
+	void CountSize()
 	{
 		size = 0;
 		for(int i = 0; i < tableSize; ++i)

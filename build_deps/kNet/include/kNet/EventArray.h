@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ private:
 #ifdef WIN32
 	WSAEVENT events[maxEvents]; 
 
-#elif defined(UNIX)
+#elif defined(UNIX) || defined(ANDROID)
 	fd_set readfds;
 	fd_set writefds;
 	int nfds;

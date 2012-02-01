@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 /** @file EndPoint.h
 	@brief The class \ref kNet::EndPoint Endpoint. Represents an endpoint of a network connection. */
 
-#ifdef UNIX
+#if defined(UNIX) || defined(ANDROID)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

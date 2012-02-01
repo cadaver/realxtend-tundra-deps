@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public:
 
 	/// Wraps the given WSAEVENT into this event.
 	explicit Event(WSAEVENT wsaEvent, EventWaitType eventType);
-#elif defined(UNIX)
+#elif defined(UNIX) || defined(ANDROID)
 public:
 	int fd[2]; // fd[0] is used for reading, fd[1] for writing.
 

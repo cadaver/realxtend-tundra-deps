@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ namespace kNet
 	class Network;
 	class NetworkMessage;
 	class NetworkServer;
+	struct OverlappedTransferBuffer;
 	class PolledTimer;
 	class SerializationStructCompiler;
 	class SerializedDataIterator;

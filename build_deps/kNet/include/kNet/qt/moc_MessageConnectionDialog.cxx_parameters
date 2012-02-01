@@ -1,4 +1,4 @@
--IE:/Projects/kNet_Qt47/tinyxml
+-IC:/Projects/kNet/src/tinyxml
 -DKNET_ENABLE_WINXP_SUPPORT
 -DKNET_THREAD_CHECKING_ENABLED
 -DKNET_LOGGING_SUPPORT_ENABLED
@@ -8,5 +8,5 @@
 -DKNET_USE_QT
 -DWIN32
 -o
-E:/Projects/kNet_Qt47/include/kNet/qt/moc_MessageConnectionDialog.cxx
-E:/Projects/kNet_Qt47/include/kNet/qt/MessageConnectionDialog.h
+C:/Projects/kNet/include/kNet/qt/moc_MessageConnectionDialog.cxx
+C:/Projects/kNet/include/kNet/qt/MessageConnectionDialog.h

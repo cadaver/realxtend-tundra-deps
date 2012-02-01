@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,6 +36,13 @@
 // Remove the manually added #define if it exists so that winsock2.h includes OK.
 #if !defined(_WINSOCK2API_) && defined(_WINSOCKAPI_)
 #undef _WINSOCKAPI_
+#endif
+
+#ifdef __MINGW32__
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0501
 #endif
 
 #include <winsock2.h>

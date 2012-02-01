@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 #include "Types.h"
 
-#ifdef UNIX
+#if defined(UNIX) || defined(ANDROID)
 #include <stdint.h>
 #endif
 

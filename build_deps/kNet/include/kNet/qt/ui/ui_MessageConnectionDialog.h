@@ -1,8 +1,8 @@
 /********************************************************************************
 ** Form generated from reading UI file 'MessageConnectionDialog.ui'
 **
-** Created: Thu 19. May 11:48:45 2011
-**      by: Qt User Interface Compiler version 4.7.0
+** Created: Wed 1. Feb 20:20:08 2012
+**      by: Qt User Interface Compiler version 4.7.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -16,6 +16,7 @@
 #include <QtGui/QButtonGroup>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
+#include <QtGui/QPushButton>
 #include <QtGui/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -70,12 +71,13 @@ public:
     QLabel *totalBytesReceived;
     QLabel *label_7;
     QLabel *inboundMessagesPending;
+    QPushButton *pushButtonSendSimulation;
 
     void setupUi(QWidget *MessageConnectionDialog)
     {
         if (MessageConnectionDialog->objectName().isEmpty())
             MessageConnectionDialog->setObjectName(QString::fromUtf8("MessageConnectionDialog"));
-        MessageConnectionDialog->resize(425, 493);
+        MessageConnectionDialog->resize(425, 519);
         connectionLine = new QLabel(MessageConnectionDialog);
         connectionLine->setObjectName(QString::fromUtf8("connectionLine"));
         connectionLine->setGeometry(QRect(10, 10, 411, 16));
@@ -217,6 +219,9 @@ public:
         inboundMessagesPending = new QLabel(MessageConnectionDialog);
         inboundMessagesPending->setObjectName(QString::fromUtf8("inboundMessagesPending"));
         inboundMessagesPending->setGeometry(QRect(230, 48, 351, 20));
+        pushButtonSendSimulation = new QPushButton(MessageConnectionDialog);
+        pushButtonSendSimulation->setObjectName(QString::fromUtf8("pushButtonSendSimulation"));
+        pushButtonSendSimulation->setGeometry(QRect(10, 490, 91, 23));
 
         retranslateUi(MessageConnectionDialog);
 
@@ -273,6 +278,7 @@ public:
         totalBytesReceived->setText(QApplication::translate("MessageConnectionDialog", "Status:", 0, QApplication::UnicodeUTF8));
         label_7->setText(QApplication::translate("MessageConnectionDialog", "# inbound messages pending:", 0, QApplication::UnicodeUTF8));
         inboundMessagesPending->setText(QApplication::translate("MessageConnectionDialog", "Status:", 0, QApplication::UnicodeUTF8));
+        pushButtonSendSimulation->setText(QApplication::translate("MessageConnectionDialog", "Send Simulation", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
