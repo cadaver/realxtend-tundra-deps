@@ -1,10 +1,9 @@
 /*
 --------------------------------------------------------------------------------
 This source file is part of SkyX.
-Visit ---
+Visit http://www.paradise-studios.net/products/skyx/
 
-Copyright (C) 2009 Xavier Verguín González <xavierverguin@hotmail.com>
-                                           <xavyiy@gmail.com>
+Copyright (C) 2009-2011 Xavier Verguín González <xavyiy@gmail.com>
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free Software
@@ -55,10 +54,10 @@ namespace SkyX
 
 		/** Add ground pass (Use for atmospheric scattering effect on the terrain)
 		    @param GroundPass Ground pass
-			@param AtmosphereRaidus Atmosphere radius (far carmera clip plane, or needed)
+			@param AtmosphereRaidus Atmosphere radius (typically far carmera clip plane)
 			@param SBT Scene blend type
 		 */
-		void addGroundPass(Ogre::Pass* GroundPass, const Ogre::Real& AtmosphereRadius = 0, const Ogre::SceneBlendType& SBT = Ogre::SBT_ADD);
+		void addGroundPass(Ogre::Pass* GroundPass, const Ogre::Real& AtmosphereRadius, const Ogre::SceneBlendType& SBT = Ogre::SBT_ADD);
 
 		/** Set gpu program int parameter
 		    @param GpuP Gpu program type (Vertex/Fragment)
