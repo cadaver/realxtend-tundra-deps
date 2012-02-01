@@ -56,7 +56,7 @@ include(SkyXGetVersion)
 skyx_get_version(${SKYX_SOURCE_DIR}/SkyX/Include/Prerequisites.h)
 message(STATUS "Configuring SKYX ${SKYX_VERSION}")
 
-if (NOT APPLE)
+if (MSVC)
   # Create debug libraries with _d postfix
   set(CMAKE_DEBUG_POSTFIX "_d")
 endif ()
