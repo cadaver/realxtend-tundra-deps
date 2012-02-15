@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,11 +37,17 @@ public:
 	/// Constructs a DataDeserializer that reads its data from the given buffer.
 	/// DataDeserializer will not copy the contents of the buffer to its own memory area, so
 	/// be sure to keep the data alive and unmoved for the duration DataDeserializer exists.
+	/// @param data A pointer to the data to deserialize. This may be null, but only if size == 0. If data == 0 and size > 0,
+	///            an exception is thrown.
+	/// @param size The number of bytes in the input buffer.
 	DataDeserializer(const char *data, size_t size);
 
 	/// Constructs a DataDeserializer that reads its data from the given buffer.
 	/// DataDeserializer will not copy the contents of the buffer to its own memory area, so
 	/// be sure to keep the data alive and unmoved for the duration DataDeserializer exists.
+	/// @param data A pointer to the data to deserialize. This may be null, but only if size == 0. If data == 0 and size > 0,
+	///            an exception is thrown.
+	/// @param size The number of bytes in the input buffer.
 	/// @param msgTemplate A pointer to an existing message template structure, which is used
 	///        to validate that deserialization of the data proceeds in the defined order.
 	///        DataDeserializer does not make a copy of this description, but dereferences
@@ -79,6 +85,25 @@ public:
 	/// Reads the given amount of bits and packs them into a u32, which is returned.
 	/// @param numBits the number of bits to read, [1, 32].
 	u32 ReadBits(int numBits);
+
+	float ReadUnsignedFixedPoint(int numIntegerBits, int numDecimalBits);
+
+	float ReadSignedFixedPoint(int numIntegerBits, int numDecimalBits);
+
+	float ReadQuantizedFloat(float minRange, float maxRange, int numBits);
+
+	float ReadMiniFloat(bool signBit, int exponentBits, int mantissaBits, int exponentBias);
+
+	void ReadNormalizedVector2D(int numBits, float &x, float &y);
+
+	void ReadVector2D(int magnitudeIntegerBits, int magnitudeDecimalBits, int directionBits, float &x, float &y);
+	void ReadNormalizedVector3D(int numBitsYaw, int numBitsPitch, float &x, float &y, float &z);
+	void ReadVector3D(int numBitsYaw, int numBitsPitch, int magnitudeIntegerBits, int magnitudeDecimalBits, float &x, float &y, float &z);
+
+	void ReadArithmeticEncoded(int numBits, int &val1, int max1, int &val2, int max2);
+	void ReadArithmeticEncoded(int numBits, int &val1, int max1, int &val2, int max2, int &val3, int max3);
+	void ReadArithmeticEncoded(int numBits, int &val1, int max1, int &val2, int max2, int &val3, int max3, int &val4, int max4);
+	void ReadArithmeticEncoded(int numBits, int &val1, int max1, int &val2, int max2, int &val3, int max3, int &val4, int max4, int &val5, int max5);
 
 	u32 GetDynamicElemCount();
 
@@ -131,7 +156,7 @@ T DataDeserializer::Read()
 	T value;
 	u8 *data = reinterpret_cast<u8*>(&value);
 
-	for(int i = 0; i < sizeof(value); ++i)
+	for(size_t i = 0; i < sizeof(value); ++i)
 		data[i] = (u8)ReadBitsToU32(8);
 
 	if (iter)

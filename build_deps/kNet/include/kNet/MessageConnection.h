@@ -1,4 +1,4 @@
-/* Copyright 2010 Jukka Jylänki
+/* Copyright The kNet Project.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 #include "kNetBuildConfig.h"
 #include "WaitFreeQueue.h"
+#include "NetworkSimulator.h"
 #include "LockFreePoolAllocator.h"
 #include "Lockable.h"
 #include "Socket.h"
@@ -52,7 +53,7 @@ class Network;
 class NetworkWorkerThread;
 class FragmentedSendManager;
 
-#ifdef WIN32
+#ifdef _MSC_VER
 struct FragmentedSendManager::FragmentedTransfer;
 #endif
 
@@ -123,6 +124,11 @@ enum ConnectionState
 
 /// Returns a textual representation of a ConnectionState.
 std::string ConnectionStateToString(ConnectionState state);
+
+// Prevent confusion with Win32 functions
+#ifdef SendMessage
+#undef SendMessage
+#endif
 
 /// Represents a single established network connection. MessageConnection maintains its own worker thread that manages
 /// connection control, the scheduling and prioritization of outbound messages, and receiving inbound messages.
@@ -325,6 +331,9 @@ public:
 	/// Returns the total number of bytes (excluding IP and TCP/UDP headers) that have been sent from this connection.
 	u64 BytesOutTotal() const { return bytesOutTotal; } // [main and worker thread]
 
+	/// Returns the simulator object which can be used to apply network condition simulations to this connection.
+	NetworkSimulator &NetworkSendSimulator() { return networkSendSimulator; }
+
 	/// Stores all the statistics about the current connection. This data is periodically recomputed
 	/// by the network worker thread and shared to the client through a lock.
 	Lockable<ConnectionStatistics> statistics; // [main and worker thread]
@@ -506,6 +515,10 @@ protected:
 	u64 bytesInTotal;
 	u64 bytesOutTotal;
 
+	/// Stores the current settigns related to network conditions testing.
+	/// By default, the simulator is disabled.
+	NetworkSimulator networkSendSimulator;
+
 	/// A running number attached to each outbound message (not present in network stream) to 
 	/// break ties when deducing which message should come before which.
 	unsigned long outboundMessageNumberCounter; // [worker thread]
@@ -535,7 +548,7 @@ protected:
 	/// by a newer packet and should not be processed.
 	/// @return True if the packet should be processed (there was no superceding record), and
 	///         false if the packet is old and should be discarded.
-	bool CheckAndSaveContentIDStamp(u32 messageID, u32 contentID, packet_id_t packetID); // [worker thread]
+	bool CheckAndSaveContentIDStamp(message_id_t messageID, u32 contentID, packet_id_t packetID); // [worker thread]
 
 	void SplitAndQueueMessage(NetworkMessage *message, bool internalQueue, size_t maxFragmentSize); // [main and worker thread]
 
@@ -549,9 +562,7 @@ protected:
 	/// Private ctor - MessageConnections are instantiated by Network and NetworkServer classes.
 	explicit MessageConnection(Network *owner, NetworkServer *ownerServer, Socket *socket, ConnectionState startingState);
 
-	virtual void Initialize() {} // [main thread]
-
-	virtual bool HandleMessage(packet_id_t /*packetID*/, u32 /*messageID*/, const char * /*data*/, size_t /*numBytes*/) { return false; } // [main thread]
+	virtual bool HandleMessage(packet_id_t /*packetID*/, message_id_t /*messageID*/, const char * /*data*/, size_t /*numBytes*/) { return false; } // [main thread]
 };
 
 template<typename SerializableData>
