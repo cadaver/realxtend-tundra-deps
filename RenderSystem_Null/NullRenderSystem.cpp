@@ -384,6 +384,11 @@ namespace Ogre {
 
 	}
 
+	DepthBuffer* NULLRenderSystem::_createDepthBufferFor(RenderTarget *renderTarget)
+	{
+		return 0;
+	}
+
 	unsigned int NULLRenderSystem::getDisplayMonitorCount() const
 	{
 		return 1;

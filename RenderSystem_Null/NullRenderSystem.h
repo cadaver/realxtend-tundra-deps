@@ -65,6 +65,8 @@ public:
 	// They can be called by library user if required
 	// ------------------------------------------------------------------------
 
+	// New functions in Ogre ~1.8. The implementation is a no-op and always return null ptr.
+	DepthBuffer* _createDepthBufferFor(RenderTarget *renderTarget);
 
 	virtual void _useLights(const LightList& lights, unsigned short limit);
 	virtual void _setWorldMatrix(const Matrix4 &m);
