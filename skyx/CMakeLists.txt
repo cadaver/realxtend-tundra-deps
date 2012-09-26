@@ -27,10 +27,10 @@ include(SkyXFindPkgMacros)
 getenv_path(OGRE_HOME)
 
 # Set where to find ogre Cmake files on unix
-if (UNIX)
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${ENV_OGRE_HOME}/cmake" "/usr/local/lib/OGRE/cmake/" "/usr/lib/OGRE/cmake/")
+if (APPLE)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ENV_OGRE_HOME}/CMake ${ENV_OGRE_HOME}/CMake/Packages ${ENV_OGRE_HOME}/CMake/Utils)
 else (UNIX)
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ENV_OGRE_HOME}/CMake)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${ENV_OGRE_HOME}/cmake" "/usr/local/lib/OGRE/cmake/" "/usr/lib/OGRE/cmake/")
 endif ()
 
 include(CMakeDependentOption)
