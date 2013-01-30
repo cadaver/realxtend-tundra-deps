@@ -11,6 +11,8 @@
 # directory, but can also be used for custom projects.
 #############################################################
 
+option(USE_BOOST "Specifies whether Boost is used." TRUE)
+
 if(WIN32 OR APPLE)
 	set(SKYX_CMAKE_DIR "CMake")
 else()
