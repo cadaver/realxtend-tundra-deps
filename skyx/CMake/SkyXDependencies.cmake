@@ -54,6 +54,23 @@ if (USE_BOOST)
     macro_log_feature(Boost_FOUND "boost" "Boost (general)" "http://boost.org" TRUE "" "")
     macro_log_feature(Boost_THREAD_FOUND "boost-thread" "Used for threading support" "http://boost.org" FALSE "" "")
     macro_log_feature(Boost_DATE_TIME_FOUND "boost-date_time" "Used for threading support" "http://boost.org" FALSE "" "")
+else() # Assume TBB is used
+    if ("${TBB_HOME}" STREQUAL "")
+        file(TO_CMAKE_PATH "$ENV{TBB_HOME}" TBB_HOME)
+        set(TBB_HOME ${TBB_HOME} CACHE PATH "TBB_HOME dependency path" FORCE)
+    endif()
+
+    # TODO Currently hardcoded to the 32-bit versions
+    if (MSVC9)
+        set(TBB_LIB_VER "ia32/vc9")
+    elseif (MSVC10)
+        set(TBB_LIB_VER "ia32/vc10")
+    elseif (MSVC11)
+        set(TBB_LIB_VER "ia32/vc11")
+    endif()
+
+    include_directories(${TBB_HOME}/include)
+    link_directories(${TBB_HOME}/lib/${TBB_LIB_VER})
 endif()
 
 # Find Ogre 3D, plus terrain and paging components
