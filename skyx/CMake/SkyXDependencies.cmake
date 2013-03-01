@@ -61,7 +61,7 @@ else() # Assume TBB is used
     endif()
 
     # TODO Currently hardcoded to the 32-bit versions
-    if (MSVC9)
+    if (MSVC90)
         set(TBB_LIB_VER "ia32/vc9")
     elseif (MSVC10)
         set(TBB_LIB_VER "ia32/vc10")
