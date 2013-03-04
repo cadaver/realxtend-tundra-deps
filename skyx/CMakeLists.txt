@@ -26,6 +26,8 @@ set(CMAKE_MODULE_PATH
 include(SkyXFindPkgMacros)
 getenv_path(OGRE_HOME)
 
+option(USE_BOOST "Specifies whether Boost is used." TRUE)
+
 # Set where to find ogre Cmake files on unix
 if (APPLE)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ENV_OGRE_HOME}/CMake ${ENV_OGRE_HOME}/CMake/Packages ${ENV_OGRE_HOME}/CMake/Utils)
