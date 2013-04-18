@@ -8,6 +8,19 @@ project(Hydrax)
 # Build as DLL
 add_definitions(-DHYDRAX_LIB)
 
+option(USE_BOOST "Specifies whether to use Boost" TRUE)
+
+IF(APPLE AND NOT USE_BOOST)
+   set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+ENDIF()
+
+IF (APPLE)
+   INCLUDE_DIRECTORIES(${HOME}/workspace/tundra/deps/osx-64/ogre-safe-nocrashes/lib)
+   FIND_LIBRARY(OGRE_FRAMEWORK Ogre)
+   MARK_AS_ADVANCED (OGRE_FRAMEWORK)
+   SET(EXTRA_LIBS ${OGRE_FRAMEWORK})
+ENDIF (APPLE)
+
 file(GLOB sourceFiles ./src/*.cpp ./src/Modules/*.cpp ./src/Modules/*.cpp ./src/Modules/ProjectedGrid/*.cpp
     ./src/Modules/RadioGrid/*.cpp ./src/Modules/SimpleGrid/*.cpp ./src/Noise/*.cpp ./src/Noise/FFT/*.cpp
     ./src/Noise/Perlin/*.cpp ./src/Noise/Real/*.cpp)
@@ -59,10 +72,14 @@ message("Hydrax TBB_HOME    = " ${TBB_HOME})
 message("Hydrax BOOST_ROOT  = " ${BOOST_ROOT})
 #message("Hydrax TBB lib path    = " ${TBB_HOME}/lib/${TBB_LIB_VER})
 
-include_directories(${OGRE_HOME}/include/OGRE ${BOOST_ROOT} ${TBB_HOME}/include)
-
-target_link_libraries(Hydrax optimized OgreMain.lib debug OgreMain_d.lib)
-
+IF (APPLE)
+    include_directories(${OGRE_HOME}/lib/relwithdebinfo/Ogre.framework/Headers)
+    target_link_libraries(Hydrax ${EXTRA_LIBS})
+ELSE ()
+    include_directories(${OGRE_HOME}/include/OGRE ${BOOST_ROOT} ${TBB_HOME}/include)
+    target_link_libraries(Hydrax optimized OgreMain.lib debug OgreMain_d.lib)
+ENDIF ()
+target_link_libraries(Hydrax ${EXTRA_LIBS})
 set_target_properties(Hydrax PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib

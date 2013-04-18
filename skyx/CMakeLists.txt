@@ -74,6 +74,10 @@ if (MSVC)
   add_definitions(/fp:fast)
 endif ()
 
+if (APPLE AND NOT USE_BOOST)
+	set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+endif ()
+
 if (CMAKE_COMPILER_IS_GNUCXX)
   # Test for GCC visibility
   include(CheckCXXCompilerFlag)
