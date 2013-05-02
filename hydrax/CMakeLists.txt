@@ -88,31 +88,34 @@ set_target_properties(Hydrax PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-set (INST_FILES
-    include/CfgFileManager.h
-    include/DecalsManager.h
-    include/Enums.h
-    include/GodRaysManager.h
-    include/GPUNormalMapManager.h
-    include/Help.h
-    include/Hydrax.h
-    include/Image.h
-    include/MaterialManager.h
-    include/Mesh.h
-    include/Prerequisites.h
-    include/RttManager.h
-    include/TextureManager.h
-)
+# install target
+if (APPLE)
+    set (INST_FILES
+        include/CfgFileManager.h
+        include/DecalsManager.h
+        include/Enums.h
+        include/GodRaysManager.h
+        include/GPUNormalMapManager.h
+        include/Help.h
+        include/Hydrax.h
+        include/Image.h
+        include/MaterialManager.h
+        include/Mesh.h
+        include/Prerequisites.h
+        include/RttManager.h
+        include/TextureManager.h
+    )
 
-set (INST_DIRS
-    include/Modules
-    include/Noise
-)
+    set (INST_DIRS
+        include/Modules
+        include/Noise
+   )
 
-# Install target 
-SET_TARGET_PROPERTIES(Hydrax
-    PROPERTIES INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+    SET_TARGET_PROPERTIES(Hydrax
+        PROPERTIES INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 
-INSTALL(FILES ${INST_FILES} DESTINATION include/Hydrax)
-INSTALL(DIRECTORY ${INST_DIRS} DESTINATION include/Hydrax)
-INSTALL(TARGETS Hydrax LIBRARY DESTINATION lib)
+    INSTALL(FILES ${INST_FILES} DESTINATION include/Hydrax)
+    INSTALL(DIRECTORY ${INST_DIRS} DESTINATION include/Hydrax)
+    INSTALL(TARGETS Hydrax LIBRARY DESTINATION lib)
+endif()
+
