@@ -94,9 +94,11 @@ macro_log_feature(DOXYGEN_FOUND "Doxygen" "Tool for building API documentation" 
 # Samples dependencies (comment if not needed)
 #######################################################################
 
-# Find OIS
-find_package(OIS)
-macro_log_feature(OIS_FOUND "OIS" "Input library needed for the OISInput plugin" "http://sourceforge.net/projects/wgois" TRUE "" "")
+if (SKYX_BUILD_SAMPLES)
+    # Find OIS
+    find_package(OIS)
+    macro_log_feature(OIS_FOUND "OIS" "Input library needed for the OISInput plugin" "http://sourceforge.net/projects/wgois" TRUE "" "")
+endif()
 
 #######################################################################
 # All dependencies were checked
