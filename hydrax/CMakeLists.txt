@@ -14,13 +14,6 @@ IF(APPLE AND NOT USE_BOOST)
    set(CMAKE_CXX_FLAGS "-stdlib=libc++")
 ENDIF()
 
-IF (APPLE)
-   INCLUDE_DIRECTORIES(${HOME}/workspace/tundra/deps/osx-64/ogre-safe-nocrashes/lib)
-   FIND_LIBRARY(OGRE_FRAMEWORK Ogre)
-   MARK_AS_ADVANCED (OGRE_FRAMEWORK)
-   SET(EXTRA_LIBS ${OGRE_FRAMEWORK})
-ENDIF (APPLE)
-
 file(GLOB sourceFiles ./src/*.cpp ./src/Modules/*.cpp ./src/Modules/*.cpp ./src/Modules/ProjectedGrid/*.cpp
     ./src/Modules/RadioGrid/*.cpp ./src/Modules/SimpleGrid/*.cpp ./src/Noise/*.cpp ./src/Noise/FFT/*.cpp
     ./src/Noise/Perlin/*.cpp ./src/Noise/Real/*.cpp)
@@ -45,6 +38,16 @@ if ("${BOOST_ROOT}" STREQUAL "")
     file(TO_CMAKE_PATH "$ENV{BOOST_ROOT}" BOOST_ROOT)
     set(BOOST_ROOT ${BOOST_ROOT} CACHE PATH "BOOST_ROOT dependency path" FORCE)
 endif()
+
+IF (APPLE)
+    if ("${ConfigurationName}" STREQUAL "") # if configuration is not specified, assume RelWithDebInfo
+        FIND_LIBRARY(OGRE_FRAMEWORK Ogre ${OGRE_HOME}/lib/relwithdebinfo)
+    else()
+        FIND_LIBRARY(OGRE_FRAMEWORK Ogre ${OGRE_HOME}/lib/${ConfigurationName})
+    endif()
+    MARK_AS_ADVANCED (OGRE_FRAMEWORK)
+    SET(EXTRA_LIBS ${OGRE_FRAMEWORK})
+ENDIF (APPLE)
 
 if (CMAKE_CL_64)
     SET(TBB_ARCH "intel64")
@@ -84,3 +87,32 @@ set_target_properties(Hydrax PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
+set (INST_FILES
+    include/CfgFileManager.h
+    include/DecalsManager.h
+    include/Enums.h
+    include/GodRaysManager.h
+    include/GPUNormalMapManager.h
+    include/Help.h
+    include/Hydrax.h
+    include/Image.h
+    include/MaterialManager.h
+    include/Mesh.h
+    include/Prerequisites.h
+    include/RttManager.h
+    include/TextureManager.h
+)
+
+set (INST_DIRS
+    include/Modules
+    include/Noise
+)
+
+# Install target 
+SET_TARGET_PROPERTIES(Hydrax
+    PROPERTIES INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+
+INSTALL(FILES ${INST_FILES} DESTINATION include/Hydrax)
+INSTALL(DIRECTORY ${INST_DIRS} DESTINATION include/Hydrax)
+INSTALL(TARGETS Hydrax LIBRARY DESTINATION lib)
