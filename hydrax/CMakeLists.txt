@@ -76,7 +76,7 @@ message("Hydrax BOOST_ROOT  = " ${BOOST_ROOT})
 #message("Hydrax TBB lib path    = " ${TBB_HOME}/lib/${TBB_LIB_VER})
 
 IF (APPLE)
-    include_directories(${OGRE_HOME}/lib/relwithdebinfo/Ogre.framework/Headers)
+    include_directories(${OGRE_HOME}/lib/relwithdebinfo/Ogre.framework/Headers ${BOOST_ROOT})
     target_link_libraries(Hydrax ${EXTRA_LIBS})
 ELSE ()
     include_directories(${OGRE_HOME}/include/OGRE ${BOOST_ROOT} ${TBB_HOME}/include)
