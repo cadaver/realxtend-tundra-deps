@@ -454,5 +454,36 @@ namespace Ogre {
 			mCurrentCapabilities = mRealCapabilities;
 	}
 
+#if OGRE_VERSION_MAJOR > 1 || (OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9)
+	void NULLRenderSystem::_setTextureUnitCompareEnabled(size_t unit, bool compare){
+	}
+	
+    void NULLRenderSystem::_setTextureUnitCompareFunction(size_t unit, CompareFunction function)
+    {
+    }
+    
+	void NULLRenderSystem::setStencilBufferParams(CompareFunction func, uint32 refValue, uint32 compareMask, uint32 writeMask,
+		StencilOperation stencilFailOp, StencilOperation depthFailOp, StencilOperation passOp, bool twoSidedOperation)
+    {
+    }
+	
+    void NULLRenderSystem::beginProfileEvent( const String &eventName )
+    {
+    }
+    
+    void NULLRenderSystem::endProfileEvent( void )
+    {
+    }
+    
+    void NULLRenderSystem::markProfileEvent( const String &event )
+    {
+    }
+    
+    bool NULLRenderSystem::hasAnisotropicMipMapFilter() const
+    {
+        return false;
+    }
+#endif
+
 }
 

@@ -41,6 +41,16 @@ namespace Ogre {
 				HardwareBuffer::Usage usage, bool useShadowBuffer = false);
 	
 		RenderToVertexBufferSharedPtr createRenderToVertexBuffer();
+
+#if OGRE_VERSION_MAJOR > 1 || (OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9)
+	    /// \todo Currently returns null buffer
+		virtual HardwareUniformBufferSharedPtr createUniformBuffer(size_t sizeBytes, 
+				HardwareBuffer::Usage usage = HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE, 
+				bool useShadowBuffer = false, const String& name = "") { return HardwareUniformBufferSharedPtr(); }
+		virtual HardwareCounterBufferSharedPtr createCounterBuffer(size_t sizeBytes,
+                HardwareBuffer::Usage usage = HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE,
+                bool useShadowBuffer = false, const String& name = "")  { return HardwareCounterBufferSharedPtr(); };
+#endif	
 	};
 	
 		/// D3D9HardwareBufferManagerBase as a Singleton

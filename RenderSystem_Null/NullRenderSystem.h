@@ -164,6 +164,21 @@ public:
 	virtual void setVertexBufferBinding(VertexBufferBinding* binding);
 	virtual void setNormaliseNormals(bool normalise);
 
+#if OGRE_VERSION_MAJOR > 1 || (OGRE_VERSION_MAJOR == 1 && OGRE_VERSION_MINOR >= 9)
+	virtual void _setTextureUnitCompareEnabled(size_t unit, bool compare);
+    virtual void _setTextureUnitCompareFunction(size_t unit, CompareFunction function);
+	virtual void setStencilBufferParams(CompareFunction func = CMPF_ALWAYS_PASS, 
+		uint32 refValue = 0, uint32 compareMask = 0xFFFFFFFF, uint32 writeMask = 0xFFFFFFFF, 
+		StencilOperation stencilFailOp = SOP_KEEP, 
+		StencilOperation depthFailOp = SOP_KEEP,
+		StencilOperation passOp = SOP_KEEP, 
+		bool twoSidedOperation = false);
+    virtual void beginProfileEvent( const String &eventName );
+    virtual void endProfileEvent( void );
+    virtual void markProfileEvent( const String &event );
+    virtual bool hasAnisotropicMipMapFilter() const;
+#endif
+
 	virtual void _render(const RenderOperation& op);
 	const RenderSystemCapabilities* getCapabilities(void) const {
 		return mRealCapabilities;
